@@ -49,6 +49,10 @@ class LessonMenu extends StatelessWidget {
                 title: '9- Working with the camera',
                 route: Routes.lesson09,
               ),
+              ButtonItem(
+                title: '9- Add sensor to body',
+                route: Routes.lesson10,
+              ),
             ],
           ),
         ),

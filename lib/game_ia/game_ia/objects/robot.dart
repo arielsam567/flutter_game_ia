@@ -10,7 +10,7 @@ enum RobotState {
   walk,
 }
 
-class Box extends BodyComponent with KeyboardHandler {
+class Robot extends BodyComponent with KeyboardHandler {
   final _componentPosition = Vector2(0, 0);
   static int proporcao = 2;
   final _size = Vector2(1.80 / proporcao, 2.4 / proporcao);

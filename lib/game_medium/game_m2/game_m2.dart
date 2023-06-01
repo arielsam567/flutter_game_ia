@@ -6,7 +6,7 @@ import 'package:flutter_game_ia/games_junior/game_7/objects/floor.dart';
 import 'package:flutter_game_ia/settings/word.dart';
 
 class GameLesson09 extends MyGame {
-  final robot = Robot();
+  final robot = Box();
 
   @override
   Future<void> onLoad() async {

@@ -1,6 +1,8 @@
 import 'dart:core';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_game_ia/game_ia/game_ia/game_m1.dart';
+import 'package:flutter_game_ia/game_ia/game_ia/word_ia.dart';
 import 'package:flutter_game_ia/game_medium/game_m1/game_m1.dart';
 import 'package:flutter_game_ia/game_medium/game_m2/game_m2.dart';
 import 'package:flutter_game_ia/games_junior/game_1/game_1.dart';
@@ -24,6 +26,7 @@ class Routes {
   static const lesson07 = '/lesson07';
   static const lesson08 = '/lesson08';
   static const lesson09 = '/lesson09';
+  static const lesson10 = '/lesson10';
 
   static Route routes(RouteSettings settings) {
     MaterialPageRoute buildRoute(Widget widget) {
@@ -51,6 +54,8 @@ class Routes {
         return buildRoute(MyGameWidget(game: GameLesson08()));
       case lesson09:
         return buildRoute(MyGameWidget(game: GameLesson09()));
+      case lesson10:
+        return buildRoute(MyGameWidgetIa(game: GameComIA()));
       default:
         throw Exception('Route does not exists');
     }
