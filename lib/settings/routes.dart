@@ -1,8 +1,8 @@
 import 'dart:core';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_game_ia/game_ia/game_ia/game_m1.dart';
-import 'package:flutter_game_ia/game_ia/game_ia/word_ia.dart';
+import 'package:flutter_game_ia/game_ia/game_m1.dart';
+import 'package:flutter_game_ia/game_ia/word_ia.dart';
 import 'package:flutter_game_ia/game_medium/game_m1/game_m1.dart';
 import 'package:flutter_game_ia/game_medium/game_m2/game_m2.dart';
 import 'package:flutter_game_ia/games_junior/game_1/game_1.dart';
