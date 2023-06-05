@@ -14,6 +14,8 @@ class Car extends BodyComponent {
   final double friction = 0.2;
   final Controls controls = Controls();
   final List<Sensor> sensors;
+  final bool isTraffic;
+  final Vector2? initialPosition;
 
   double speed = 0;
   double acceleration = 0.50;
@@ -27,6 +29,8 @@ class Car extends BodyComponent {
   Car(
     this.worldSize, {
     required this.sensors,
+    this.isTraffic = false,
+    this.initialPosition,
     this.maxSpeed = 6,
   });
 
@@ -34,7 +38,7 @@ class Car extends BodyComponent {
   Future<void> onLoad() async {
     super.onLoad();
 
-    final sprite = Sprite(gameRef.images.fromCache('car.png'));
+    final sprite = Sprite(gameRef.images.fromCache(isTraffic ? 'car_red.png' : 'car.png'));
     add(
       SpriteComponent(
         sprite: sprite,
@@ -47,12 +51,13 @@ class Car extends BodyComponent {
   @override
   Body createBody() {
     final bodyDef = BodyDef(
-      position: Vector2(worldSize.x / 2, 3),
+      position: initialPosition ?? Vector2(worldSize.x / 2, 3),
+      //position: initialPosition,
       type: BodyType.dynamic,
     );
 
     final shape = PolygonShape()..setAsBoxXY(xSize * carSize, ySize * carSize);
-    final fixtureDef = FixtureDef(shape, isSensor: true);
+    final fixtureDef = FixtureDef(shape, isSensor: !isTraffic);
     //add(sensor);
     return world.createBody(bodyDef)..createFixture(fixtureDef);
   }
@@ -230,5 +235,10 @@ class Car extends BodyComponent {
     } else if (paint.color != Colors.green) {
       updateColor(false);
     }
+  }
+
+  double getLastPosition() {
+    final double lastPosition = body.position.y;
+    return lastPosition;
   }
 }

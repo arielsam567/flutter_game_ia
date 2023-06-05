@@ -1,3 +1,7 @@
+//import async
+import 'dart:async' as timer;
+import 'dart:math';
+
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +15,7 @@ class GameComIA extends MyGameIa {
   late Car car;
   List<Sensor> carSensor = [];
   int sensorNumber = 10;
+  List<Car> traffic = [];
 
   final List<Wall> paredes = [];
   List<List<Vector2>> paredesVector = [];
@@ -31,11 +36,14 @@ class GameComIA extends MyGameIa {
   Future<void> onLoad() async {
     super.onLoad();
 
+    addTraffic();
+
     for (int i = 0; i < sensorNumber; i++) {
       carSensor.add(Sensor());
     }
     car = Car(worldSize, sensors: carSensor);
     await loadSprite('car.png');
+    await loadSprite('car_red.png');
 
     await addLinesRoad();
 
@@ -105,10 +113,28 @@ class GameComIA extends MyGameIa {
     }
   }
 
-  List<Vector2> lastVector = [];
   @override
   void update(double dt) {
     super.update(dt);
     car.checkCollisions(paredesVector);
+  }
+
+  void addTraffic() {
+    timer.Timer.periodic(const Duration(seconds: 3), (timer) {
+      final Car trafficCar = Car(
+        worldSize,
+        sensors: [],
+        maxSpeed: 2,
+        isTraffic: true,
+        initialPosition: Vector2(
+          Random().nextDouble() * worldSize.x * 0.8,
+          car.getLastPosition() - 10,
+        ),
+      );
+      trafficCar.controls.forward = true;
+      traffic.add(trafficCar);
+
+      add(trafficCar);
+    });
   }
 }
