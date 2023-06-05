@@ -10,7 +10,7 @@ import 'package:flutter_game_ia/game_ia/word_ia.dart';
 class GameComIA extends MyGameIa {
   late Car car;
   List<Sensor> carSensor = [];
-  int sensorNumber = 5;
+  int sensorNumber = 10;
 
   final List<Wall> paredes = [];
   List<List<Vector2>> paredesVector = [];
@@ -31,14 +31,16 @@ class GameComIA extends MyGameIa {
   Future<void> onLoad() async {
     super.onLoad();
 
-    car = Car(worldSize);
+    for (int i = 0; i < sensorNumber; i++) {
+      carSensor.add(Sensor());
+    }
+    car = Car(worldSize, sensors: carSensor);
     await loadSprite('car.png');
 
     await addLinesRoad();
 
     await add(car);
     for (int i = 0; i < sensorNumber; i++) {
-      carSensor.add(Sensor());
       await add(carSensor[i]);
     }
 
@@ -107,6 +109,6 @@ class GameComIA extends MyGameIa {
   @override
   void update(double dt) {
     super.update(dt);
-    car.checkCollisions(paredesVector, carSensor[0]);
+    car.checkCollisions(paredesVector);
   }
 }

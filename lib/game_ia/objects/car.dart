@@ -13,6 +13,7 @@ class Car extends BodyComponent {
   final double maxSpeed;
   final double friction = 0.2;
   final Controls controls = Controls();
+  final List<Sensor> sensors;
 
   double speed = 0;
   double acceleration = 0.50;
@@ -21,9 +22,11 @@ class Car extends BodyComponent {
   double xSize = 0.25;
   double ySize = 0.5;
   double angleIncrement = 0.02;
+  double angleSpread = 2;
 
   Car(
     this.worldSize, {
+    required this.sensors,
     this.maxSpeed = 6,
   });
 
@@ -127,40 +130,61 @@ class Car extends BodyComponent {
     paint.color = Colors.red;
   }
 
-  void checkCollisions(List<List<Vector2>> paredesVector, Sensor sensor) {
+  void checkCollisions(List<List<Vector2>> paredesVector) {
     final carPosition = body.position;
     final double angle = carAngle / pi * 180;
     final double rad = angle * (pi / 180);
-    updateSensorPosition(carPosition, rad, sensor);
-    final List<Vector2> sensorVector = getSensorsVector(rad, sensor);
-    checkSensorCollisionWithParedes(sensorVector, sensor, paredesVector);
 
-    checkCarCollisionWithParedes(paredesVector, rad);
+    //SENSOR
+    updateSensorPosition(carPosition, rad);
+    for (int i = 0; i < sensors.length; i++) {
+      final List<Vector2> sensorVector = getSensorsVector(rad, sensors[i], i);
+      checkSensorCollisionWithParedes(sensorVector, sensors[i], paredesVector);
+    }
+
+    //CAR
+    final List<Vector2> carVector = getCarVector(rad);
+    checkCarCollisionWithParedes(paredesVector, carVector);
   }
 
-  void updateSensorPosition(carPosition, double rad, Sensor sensor) {
-    sensor.body.setTransform(
-      Vector2(carPosition.x + 2.8 * sin(rad), carPosition.y - 2.80 * cos(rad)),
-      carAngle,
-    );
+  void updateSensorPosition(Vector2 carPosition, double carAngleRad) {
+    final double angleIncrement = angleSensor;
+    for (int i = 0; i < sensors.length; i++) {
+      final double sensorAngleRad = carAngleRad - pi / (2 * angleSpread) + angleIncrement * i;
+      sensors[i].body.setTransform(
+            Vector2(
+              carPosition.x + 2.8 * sin(sensorAngleRad),
+              carPosition.y - 2.8 * cos(sensorAngleRad),
+            ),
+            sensorAngleRad,
+          );
+    }
   }
 
-  List<Vector2> getSensorsVector(double rad, Sensor sensor) {
+  double get angleSensor => (pi / angleSpread) / (sensors.length - 1);
+
+  List<Vector2> getSensorsVector(double carAngleRad, Sensor sensor, int i) {
     final sensorPosition = sensor.body.position;
+
+    final double sensorAngleRad = carAngleRad - pi / (2 * angleSpread) + angleSensor * i;
+
     return [
       Vector2(
-        sensorPosition.x + sensor.sizeY() * sin(rad),
-        sensorPosition.y - sensor.sizeY() * cos(rad),
+        sensorPosition.x + sensor.sizeY() * sin(sensorAngleRad),
+        sensorPosition.y - sensor.sizeY() * cos(sensorAngleRad),
       ),
       Vector2(
-        sensorPosition.x - sensor.sizeY() * sin(rad),
-        sensorPosition.y + sensor.sizeY() * cos(rad),
+        sensorPosition.x - sensor.sizeY() * sin(sensorAngleRad),
+        sensorPosition.y + sensor.sizeY() * cos(sensorAngleRad),
       ),
     ];
   }
 
   void checkSensorCollisionWithParedes(
-      List<Vector2> sensorVector, Sensor sensor, List<List<Vector2>> paredesVector) {
+    List<Vector2> sensorVector,
+    Sensor sensor,
+    List<List<Vector2>> paredesVector,
+  ) {
     Map map = polysIntersect(sensorVector, paredesVector[0]);
     if (map.isEmpty) {
       map = polysIntersect(sensorVector, paredesVector[1]);
@@ -196,9 +220,7 @@ class Car extends BodyComponent {
     return list;
   }
 
-  void checkCarCollisionWithParedes(List<List<Vector2>> paredesVector, double rad) {
-    final List<Vector2> carVector = getCarVector(rad);
-
+  void checkCarCollisionWithParedes(List<List<Vector2>> paredesVector, List<Vector2> carVector) {
     Map map = polysIntersect(carVector, paredesVector[0]);
     if (map.isEmpty) {
       map = polysIntersect(carVector, paredesVector[1]);

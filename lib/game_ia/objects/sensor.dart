@@ -1,13 +1,7 @@
-import 'dart:math' as math;
-
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 
 class Sensor extends BodyComponent with ContactCallbacks, Collision {
-  final int rayCount = 15;
-  final double raySpread = math.pi / 2;
-  Vector2 position = Vector2.zero();
-  double carAngl = 0;
   double xSize = 0.02;
   double ySize = 2;
 
@@ -44,7 +38,7 @@ class Sensor extends BodyComponent with ContactCallbacks, Collision {
     final Color color = Color.lerp(
       Colors.green,
       Colors.red,
-      percent ,
+      percent,
     )!;
     paint.color = color;
   }
