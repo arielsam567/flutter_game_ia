@@ -11,8 +11,8 @@ class Box extends BodyComponent {
     final shape = PolygonShape()..setAsBoxXY(2, .25);
     final fixtureDef = FixtureDef(shape)
       ..density = 1
-      ..friction = 1
-      ..restitution = 1;
+      ..friction = 01
+      ..restitution = 0.1;
     return world.createBody(bodyDef)..createFixture(fixtureDef);
   }
 }

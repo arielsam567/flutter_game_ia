@@ -3,6 +3,7 @@ class Controls {
   bool backward = false;
   bool left = false;
   bool right = false;
+  bool isDead = false;
 
   void stop() {
     forward = false;
@@ -12,11 +13,15 @@ class Controls {
   }
 
   void moveOn() {
+    //if (!bateu) {
     forward = true;
+    // }
   }
 
   void moveBack() {
-    backward = true;
+    if (!isDead) {
+      backward = true;
+    }
   }
 
   void turnRight() {
@@ -29,5 +34,9 @@ class Controls {
 
   bool isStop() {
     return !forward && !backward && !left && !right;
+  }
+
+  void setBateu() {
+    isDead = true;
   }
 }

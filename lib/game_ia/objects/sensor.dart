@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class Sensor extends BodyComponent with ContactCallbacks, Collision {
   double xSize = 0.02;
   double ySize = 2;
-
+  double reading = 0;
   @override
   Body createBody() {
     final bodyDef = BodyDef(
@@ -35,11 +35,17 @@ class Sensor extends BodyComponent with ContactCallbacks, Collision {
   }
 
   void updateColor(double percent) {
+    reading = percent;
     final Color color = Color.lerp(
       Colors.green,
       Colors.red,
       percent,
     )!;
     paint.color = color;
+  }
+
+  void deleteItem() {
+    world.destroyBody(body);
+    gameRef.remove(this);
   }
 }

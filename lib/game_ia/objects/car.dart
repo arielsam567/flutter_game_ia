@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_game_ia/IA/IA.dart';
 import 'package:flutter_game_ia/game_ia/objects/sensor.dart';
 import 'package:flutter_game_ia/game_medium/game_m1/control.dart';
 import 'package:flutter_game_ia/utils/utils.dart';
@@ -12,10 +13,11 @@ class Car extends BodyComponent {
   final Vector2 worldSize;
   final double maxSpeed;
   final double friction = 0.2;
-  final Controls controls = Controls();
   final List<Sensor> sensors;
   final bool isTraffic;
   final Vector2? initialPosition;
+  NeuralNetwork brain = NeuralNetwork([10, 12, 4]);
+  final Controls controls = Controls();
 
   double speed = 0;
   double acceleration = 0.50;
@@ -96,7 +98,7 @@ class Car extends BodyComponent {
   }
 
   void setSpeedMaxSpeed() {
-    if (controls.forward) {
+    if (controls.forward && !controls.isDead) {
       speed -= acceleration;
       if (speed < -maxSpeed) {
         speed = -maxSpeed;
@@ -135,7 +137,7 @@ class Car extends BodyComponent {
     paint.color = Colors.red;
   }
 
-  void checkCollisions(List<List<Vector2>> paredesVector) {
+  void checkCollisions(List<List<Vector2>> paredesVector, List<Car> traffic) {
     final carPosition = body.position;
     final double angle = carAngle / pi * 180;
     final double rad = angle * (pi / 180);
@@ -145,11 +147,27 @@ class Car extends BodyComponent {
     for (int i = 0; i < sensors.length; i++) {
       final List<Vector2> sensorVector = getSensorsVector(rad, sensors[i], i);
       checkSensorCollisionWithParedes(sensorVector, sensors[i], paredesVector);
+      checkSensorCollisionWithTraffic(sensorVector, sensors[i], traffic);
     }
 
-    //CAR
+    if (!isTraffic) {
+      List<double> offsets = sensors.map((s) => 1 - s.reading).toList();
+      //print('offsets: $offsets');
+      //var offsets = this.sensor.readings.map((s) => s == null ? 0 : 1 - s.offset);
+      final outputs = NeuralNetwork.feedForward(offsets, brain);
+
+      // controls.forward = outputs[0] > 0;
+      // controls.left = outputs[1] > 0;
+      // controls.right = outputs[2] > 0;
+      // controls.backward = outputs[3] > 0;
+    }
+
+    //CAR AND PAREDES
     final List<Vector2> carVector = getCarVector(rad);
     checkCarCollisionWithParedes(paredesVector, carVector);
+
+    //CAR AND TRAFFIC
+    checkCarCollisionWithTraffic(carVector, traffic);
   }
 
   void updateSensorPosition(Vector2 carPosition, double carAngleRad) {
@@ -199,6 +217,21 @@ class Car extends BodyComponent {
     }
   }
 
+  void checkSensorCollisionWithTraffic(
+    List<Vector2> sensorVector,
+    Sensor sensor,
+    List<Car> traffic,
+  ) {
+    for (int i = 0; i < traffic.length; i++) {
+      final car = traffic[i];
+      final carVector = car.getCarVector(car.carAngle);
+      final map = polysIntersect(sensorVector, carVector);
+      if (map.isNotEmpty) {
+        sensor.updateColor(map['offset']);
+      }
+    }
+  }
+
   List<Vector2> getCarVector(double rad) {
     final position = body.position;
     final carSizeX = sizeX() / 2;
@@ -232,13 +265,31 @@ class Car extends BodyComponent {
     }
     if (map.isNotEmpty && paint.color != Colors.red) {
       updateColor(true);
-    } else if (paint.color != Colors.green) {
-      updateColor(false);
+      controls.setBateu();
+    }
+  }
+
+  void checkCarCollisionWithTraffic(List<Vector2> carVector, List<Car> cars) {
+    for (final Car element in cars) {
+      final List<Vector2> oneCarVector = element.getCarVector(element.carAngle);
+      final Map map = polysIntersect(carVector, oneCarVector);
+      if (map.isNotEmpty && paint.color != Colors.red) {
+        controls.setBateu();
+        updateColor(true);
+      }
     }
   }
 
   double getLastPosition() {
     final double lastPosition = body.position.y;
     return lastPosition;
+  }
+
+  void deleteItem() {
+    world.destroyBody(body);
+    gameRef.remove(this);
+    for (final Sensor sensor in sensors) {
+      sensor.deleteItem();
+    }
   }
 }
