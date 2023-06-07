@@ -11,14 +11,14 @@ import 'package:flutter_game_ia/game_medium/game_m1/control.dart';
 import 'package:flutter_game_ia/utils/utils.dart';
 
 class Car extends BodyComponent {
-  final double carOpacity = 0.1;
+  final double carOpacity = 0.4;
   final Vector2 worldSize;
   final double maxSpeed;
   final double friction = 0.2;
   final List<Sensor> sensors;
   final bool isTraffic;
   final Vector2? initialPosition;
-  NeuralNetwork brain = NeuralNetwork([sensorNumber, sensorNumber + 1, 4]);
+  NeuralNetwork brain = NeuralNetwork([sensorNumber, sensorNumber + 3, 4]);
   final Controls controls = Controls();
 
   double speed = 0;
@@ -134,8 +134,14 @@ class Car extends BodyComponent {
   }
 
   void setSpeed2D() {
-    body.setTransform(Vector2(body.position.x, body.position.y), carAngle);
-    body.linearVelocity = Vector2(-math.sin(carAngle) * speed, math.cos(carAngle) * speed);
+    final Vector2 newVelocity = Vector2(-math.sin(carAngle) * speed, math.cos(carAngle) * speed);
+
+    if (newVelocity != (body.linearVelocity)) {
+      body.setTransform(Vector2(body.position.x, body.position.y), carAngle);
+      body.linearVelocity = newVelocity;
+    }
+    // body.setTransform(Vector2(body.position.x, body.position.y), carAngle);
+    // body.linearVelocity = Vector2(-math.sin(carAngle) * speed, math.cos(carAngle) * speed);
   }
 
   double sizeX() {
@@ -147,17 +153,14 @@ class Car extends BodyComponent {
   }
 
   void updateColor(bool isColliding) {
-    if (!isColliding) {
-      paint.color = Colors.green;
-      return;
+    if (isColliding && Colors.red != paint.color) {
+      paint.color = Colors.red;
     }
-    paint.color = Colors.red;
   }
 
   void checkCollisions(List<List<Vector2>> paredesVector, List<Car> traffic) {
     final carPosition = body.position;
-    final double angle = carAngle / pi * 180;
-    final double rad = angle * (pi / 180);
+    final double rad = carAngle;
 
     //SENSOR
     updateSensorPosition(carPosition, rad);
@@ -165,17 +168,14 @@ class Car extends BodyComponent {
       final List<Vector2> sensorVector = getSensorsVector(rad, sensors[i], i);
       checkSensorCollisionWithTraffic(sensorVector, sensors[i], traffic, paredesVector);
     }
+    final List<double> offsets = sensors.map((s) => s.reading).toList();
+    final outputs = NeuralNetwork.feedForward(offsets, brain);
 
-    if (!isTraffic) {
-      final List<double> offsets = sensors.map((s) => s.reading).toList();
-      final outputs = NeuralNetwork.feedForward(offsets, brain);
-
-      if (!controls.isDead) {
-        controls.forward = outputs[0] > 0;
-        controls.left = outputs[1] > 0;
-        controls.right = outputs[2] > 0;
-        controls.backward = outputs[3] > 0;
-      }
+    if (!controls.isDead) {
+      controls.forward = outputs[0] > 0;
+      controls.left = outputs[1] > 0;
+      controls.right = outputs[2] > 0;
+      controls.backward = outputs[3] > 0;
     }
 
     //CAR AND PAREDES
@@ -190,13 +190,13 @@ class Car extends BodyComponent {
     final double angleIncrement = angleSensor;
     for (int i = 0; i < sensors.length; i++) {
       final double sensorAngleRad = carAngleRad - pi / (2 * angleSpread) + angleIncrement * i;
-      sensors[i].body.setTransform(
-            Vector2(
-              carPosition.x + 2.8 * sin(sensorAngleRad),
-              carPosition.y - 2.8 * cos(sensorAngleRad),
-            ),
-            sensorAngleRad,
-          );
+      final Vector2 newPosition = Vector2(
+        carPosition.x + 2.8 * sin(sensorAngleRad),
+        carPosition.y - 2.8 * cos(sensorAngleRad),
+      );
+      if (newPosition != (sensors[i].body.position)) {
+        sensors[i].body.setTransform(newPosition, sensorAngleRad);
+      }
     }
   }
 
@@ -218,20 +218,6 @@ class Car extends BodyComponent {
       ),
     ];
   }
-
-  // void checkSensorCollisionWithParedes(
-  //   List<Vector2> sensorVector,
-  //   Sensor sensor,
-  //   List<List<Vector2>> paredesVector,
-  // ) {
-  //   Map map = polysIntersect(sensorVector, paredesVector[0]);
-  //   if (map.isEmpty) {
-  //     map = polysIntersect(sensorVector, paredesVector[1]);
-  //   }
-  //   if (map.isNotEmpty) {
-  //     sensor.updateColor(map['offset']);
-  //   }
-  // }
 
   void checkSensorCollisionWithTraffic(
     List<Vector2> sensorVector,
@@ -263,7 +249,6 @@ class Car extends BodyComponent {
       final List<double> offsets = touch.map((e) => e['offset'] as double).toList();
       final double min = offsets.reduce(math.min);
       sensor.updateColor(min);
-      //return touches.find((e) => e.offset == minOffset);
     }
   }
 
@@ -271,23 +256,29 @@ class Car extends BodyComponent {
     final position = body.position;
     final carSizeX = sizeX() / 2;
     final carSizeY = sizeY();
+    final cosRad = cos(rad);
+    final sinRad = sin(rad);
+    final aux = carSizeX * cosRad;
+    final aux2 = carSizeX * sinRad;
+    final aux3 = carSizeY * cosRad;
+    final aux4 = carSizeY * sinRad;
 
     final List<Vector2> list = [
       Vector2(
-        position.x + carSizeX * cos(rad) + carSizeY * sin(rad),
-        position.y - carSizeY * cos(rad) - carSizeX * sin(rad),
+        position.x + aux + aux4,
+        position.y - aux3 - aux2,
       ),
       Vector2(
-        position.x - carSizeX * cos(rad) - carSizeY * sin(rad),
-        position.y - carSizeY * cos(rad) - carSizeX * sin(rad),
+        position.x - aux - aux4,
+        position.y - aux3 - aux2,
       ),
       Vector2(
-        position.x - carSizeX * cos(rad) - carSizeY * sin(rad),
-        position.y + carSizeY * cos(rad) + carSizeX * sin(rad),
+        position.x - aux - aux4,
+        position.y + aux3 + aux2,
       ),
       Vector2(
-        position.x + carSizeX * cos(rad) + carSizeY * sin(rad),
-        position.y + carSizeY * cos(rad) + carSizeX * sin(rad),
+        position.x + aux + aux4,
+        position.y + aux3 + aux2,
       ),
     ];
     return list;

@@ -17,13 +17,14 @@ import 'package:flutter_game_ia/utils/utils.dart';
 
 int sensorNumber = 10;
 int durationToNewGeneration = 15;
+double mutateRate = 0.1;
 
 class GameComIA extends MyGameIa {
   final List<GenerationInfo> generation;
   final Storage storage = Storage();
   late Car bestCar;
   List<Sensor> carSensor = [];
-  final int N = 10;
+  final int N = 5;
   List<Car> cars = [];
   List<Car> traffic = [];
   final worldBounds = Rect.fromLTRB(0, -double.infinity, worldSize.x, worldSize.y);
@@ -52,9 +53,8 @@ class GameComIA extends MyGameIa {
         await add(carSensor[i]);
       }
     }
-    bestCar = cars[0];
 
-    debugPrint('Cars generated');
+    debugPrint('\nCars generated');
   }
 
   void initParedeVector() {
@@ -70,12 +70,12 @@ class GameComIA extends MyGameIa {
   @override
   Future<void> onLoad() async {
     super.onLoad();
-    await loadSprite('car.png');
-    await loadSprite('car_red.png');
-
-    await addLinesRoad();
-
-    await generateCars();
+    await Future.wait([
+      loadSprite('car.png'),
+      loadSprite('car_red.png'),
+      addLinesRoad(),
+      generateCars(),
+    ]);
     setBestBrain();
 
     addTraffic();
@@ -160,7 +160,6 @@ class GameComIA extends MyGameIa {
     for (final Car element in cars) {
       element.checkCollisions(paredesVector, traffic);
     }
-    deleteDumbCars();
     checkBestCar();
   }
 
@@ -190,14 +189,17 @@ class GameComIA extends MyGameIa {
   }
 
   timer.Future<void> addTraffic() async {
-    await createOneCarToTraffic([2], -2);
-    await createOneCarToTraffic([1, 3], -6);
-    await createOneCarToTraffic([0, 2, 4], -9);
-    await createOneCarToTraffic([0, 1, 2, 4], -13);
-    await createOneCarToTraffic([0, 1, 3, 4], -18);
+    await Future.wait([
+      createOneCarToTraffic([2], -2),
+      createOneCarToTraffic([1, 3], -6),
+      createOneCarToTraffic([0, 2, 4], -9),
+      createOneCarToTraffic([0, 1, 2, 4], -13),
+      createOneCarToTraffic([0, 1.1, 3, 4], -18),
+    ]);
 
-    _timer = timer.Timer.periodic(const Duration(seconds: 2), (timer) {
+    _timer = timer.Timer.periodic(const Duration(seconds: 1), (timer) {
       checkStoppedCars();
+
       // final Car trafficCar = Car(
       //   worldSize,
       //   sensors: [],
@@ -218,17 +220,16 @@ class GameComIA extends MyGameIa {
   @override
   void onRemove() {
     super.onRemove();
+    closePage = true;
     _timer.cancel();
   }
 
   void checkBestCar() {
     cars.removeWhere((element) => element.controls.isDead);
+
     for (int i = 0; i < cars.length; i++) {
       if (cars[i].body.position.y < bestCar.body.position.y) {
         bestCar = cars[i];
-        cars[i].paint.color = Colors.amber;
-      } else {
-        cars[i].paint.color = Colors.green;
       }
     }
     camera.followBodyComponent(
@@ -246,12 +247,13 @@ class GameComIA extends MyGameIa {
       for (int i = 0; i < cars.length; i++) {
         cars[i].brain = bestBrain!.clone();
         if (i > 0) {
-          NeuralNetwork.mutate(cars[i].brain, 0.25);
+          NeuralNetwork.mutate(cars[i].brain, mutateRate);
         }
       }
     } else {
       debugPrint('NO BEST BRAIN');
     }
+    bestCar = cars[0];
   }
 
   void startNewGeneration({bool isRestart = false}) {
@@ -277,30 +279,23 @@ class GameComIA extends MyGameIa {
     if (currentScore < bestScore) {
       storage.saveBrain(bestCar.brain);
       storage.saveBestPosition(currentScore);
+      showMessage('Best brain saved');
     }
+    print('currentScore $currentScore | bestScore $bestScore');
   }
 
   int getNewGeneration() {
     return generation.last.generation == 0 ? generation.length : generation.length + 1;
   }
 
-  void deleteDumbCars() {
-    cars.removeWhere((element) {
-      final bool delete = element.getLastPosition() > 3.1;
-      if (delete) {
-        element.deleteItem();
-      }
-      return delete;
-    });
-  }
-
   void checkStoppedCars() {
     cars.removeWhere((element) {
-      final bool delete = element.isStopped();
+      final bool delete = element.isStopped() || element.getLastPosition() > 3;
       if (delete) {
         element.deleteItem();
+        return true;
       }
-      return delete;
+      return false;
     });
     if (cars.isEmpty) {
       startNewGeneration(isRestart: true);

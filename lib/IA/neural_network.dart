@@ -85,25 +85,37 @@ class Level {
   }
 
   static List<double> feedForward(List<double> givenInputs, Level level) {
-    for (int i = 0; i < level.inputs.length; i++) {
-      level.inputs[i] = givenInputs[i];
-    }
-
     for (int i = 0; i < level.outputs.length; i++) {
       double sum = 0;
       for (int j = 0; j < level.inputs.length; j++) {
+        level.inputs[j] = givenInputs[j];
         sum += level.inputs[j] * level.weights[j][i];
       }
-
-      if (sum > level.biases[i]) {
-        level.outputs[i] = 1;
-      } else {
-        level.outputs[i] = 0;
-      }
+      level.outputs[i] = sum > level.biases[i] ? 1 : 0;
     }
-
     return level.outputs;
   }
+
+  // static List<double> feedForward(List<double> givenInputs, Level level) {
+  //   for (int i = 0; i < level.inputs.length; i++) {
+  //     level.inputs[i] = givenInputs[i];
+  //   }
+  //
+  //   for (int i = 0; i < level.outputs.length; i++) {
+  //     double sum = 0;
+  //     for (int j = 0; j < level.inputs.length; j++) {
+  //       sum += level.inputs[j] * level.weights[j][i];
+  //     }
+  //
+  //     if (sum > level.biases[i]) {
+  //       level.outputs[i] = 1;
+  //     } else {
+  //       level.outputs[i] = 0;
+  //     }
+  //   }
+  //
+  //   return level.outputs;
+  // }
 
   Level.fromJson(Map<String, dynamic> json)
       : inputs = List<double>.from(json['inputs']),

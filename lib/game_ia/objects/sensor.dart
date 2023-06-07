@@ -5,6 +5,8 @@ class Sensor extends BodyComponent with ContactCallbacks, Collision {
   double xSize = 0.02;
   double ySize = 2;
   double reading = 0;
+  Color sensorColor = Colors.white;
+
   @override
   Body createBody() {
     final bodyDef = BodyDef(
@@ -17,15 +19,6 @@ class Sensor extends BodyComponent with ContactCallbacks, Collision {
     return world.createBody(bodyDef)..createFixture(fixtureDef);
   }
 
-  //overflow detector
-  @override
-  void beginContact(Object other, Contact contact) {
-    final Body bodyA = contact.fixtureA.body;
-    final Body bodyB = contact.fixtureB.body;
-
-    print('SENSOR - beginContact | bodyA $bodyA | bodyB $bodyB');
-  }
-
   double sizeX() {
     return xSize;
   }
@@ -36,17 +29,20 @@ class Sensor extends BodyComponent with ContactCallbacks, Collision {
 
   void updateColor(double percent) {
     reading = percent;
-    Color color = Color.lerp(
+    Color newColor = Color.lerp(
       Colors.green,
       Colors.red,
       percent,
     )!;
 
     if (percent == 0) {
-      color = Colors.white;
+      newColor = Colors.white;
     }
 
-    paint.color = color;
+    if (newColor != sensorColor) {
+      paint.color = newColor;
+      sensorColor = newColor;
+    }
   }
 
   void deleteItem() {
