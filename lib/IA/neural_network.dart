@@ -12,6 +12,13 @@ class NeuralNetwork {
     }
   }
 
+  NeuralNetwork.fromJson(Map<String, dynamic> json)
+      : levels = (json['levels'] as List)
+            .map((item) => Level.fromJson(item as Map<String, dynamic>))
+            .toList();
+
+  Map<String, dynamic> toJson() => {'levels': levels.map((level) => level.toJson()).toList()};
+
   static List<double> feedForward(List<double> givenInputs, NeuralNetwork network) {
     List<double> outputs = Level.feedForward(givenInputs, network.levels[0]);
     for (int i = 1; i < network.levels.length; i++) {
@@ -20,17 +27,32 @@ class NeuralNetwork {
     return outputs;
   }
 
-  static void mutate(NeuralNetwork network, [double amount = 1]) {
+  static mutate(NeuralNetwork network, [double amount = 1]) {
     for (final Level level in network.levels) {
       for (int i = 0; i < level.biases.length; i++) {
         level.biases[i] = lerp(level.biases[i], Random().nextDouble() * 2 - 1, amount);
       }
       for (int i = 0; i < level.weights.length; i++) {
         for (int j = 0; j < level.weights[i].length; j++) {
-          level.weights[i][j] = lerp(level.weights[i][j], Random().nextDouble() * 2 - 1, amount);
+          level.weights[i][j] = lerp(
+            level.weights[i][j],
+            Random().nextDouble() * 2 - 1,
+            amount,
+          );
         }
       }
     }
+  }
+
+  NeuralNetwork clone() {
+    final List<int> neuronCounts = levels.map((level) => level.inputs.length).toList();
+    neuronCounts.add(levels.last.outputs.length);
+    final NeuralNetwork clone = NeuralNetwork(neuronCounts);
+    for (int i = 0; i < levels.length; i++) {
+      clone.levels[i].biases = List.from(levels[i].biases);
+      clone.levels[i].weights = levels[i].weights.map((list) => List<double>.from(list)).toList();
+    }
+    return clone;
   }
 }
 
@@ -82,4 +104,18 @@ class Level {
 
     return level.outputs;
   }
+
+  Level.fromJson(Map<String, dynamic> json)
+      : inputs = List<double>.from(json['inputs']),
+        outputs = List<double>.from(json['outputs']),
+        biases = List<double>.from(json['biases']),
+        weights = (json['weights'] as List).map((item) => List<double>.from(item)).toList();
+
+  // Método adicional para JSON
+  Map<String, dynamic> toJson() => {
+        'inputs': inputs,
+        'outputs': outputs,
+        'biases': biases,
+        'weights': weights,
+      };
 }

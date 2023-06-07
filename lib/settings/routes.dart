@@ -2,7 +2,8 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_game_ia/game_ia/game_m1.dart';
-import 'package:flutter_game_ia/game_ia/word_ia.dart';
+import 'package:flutter_game_ia/game_ia/objects/charts_line.dart';
+import 'package:flutter_game_ia/game_ia/word_stl.dart';
 import 'package:flutter_game_ia/game_medium/game_m1/game_m1.dart';
 import 'package:flutter_game_ia/game_medium/game_m2/game_m2.dart';
 import 'package:flutter_game_ia/games_junior/game_1/game_1.dart';
@@ -16,6 +17,7 @@ import 'package:flutter_game_ia/settings/menu.dart';
 import 'package:flutter_game_ia/settings/word.dart';
 
 class Routes {
+  static final navigatorKey = GlobalKey<NavigatorState>();
   static const menu = '/';
   static const lesson01 = '/lesson01';
   static const lesson02 = '/lesson02';
@@ -32,6 +34,8 @@ class Routes {
     MaterialPageRoute buildRoute(Widget widget) {
       return MaterialPageRoute(builder: (_) => widget, settings: settings);
     }
+
+    final agrs = settings.arguments;
 
     switch (settings.name) {
       case menu:
@@ -55,9 +59,27 @@ class Routes {
       case lesson09:
         return buildRoute(MyGameWidget(game: GameLesson09()));
       case lesson10:
-        return buildRoute(MyGameWidgetIa(game: GameComIA()));
+        final List<GenerationInfo> generation = getGenerationInfo(agrs);
+        return buildRoute(
+          MyGameWidgetIa(
+            game: GameComIA(generation),
+            generation: generation,
+          ),
+        );
       default:
         throw Exception('Route does not exists');
     }
+  }
+
+  static List<GenerationInfo> getGenerationInfo(Object? agrs) {
+    return agrs == null ? <GenerationInfo>[GenerationInfo(0, 0)] : agrs as List<GenerationInfo>;
+  }
+
+  static void generateNewGeneration(List<GenerationInfo> generation) {
+    navigatorKey.currentState?.pushNamedAndRemoveUntil(
+      Routes.lesson10,
+      (r) => false,
+      arguments: generation,
+    );
   }
 }

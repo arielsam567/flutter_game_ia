@@ -17,6 +17,9 @@ dependencies:
   flame: ^1.8.0
   flame_forge2d: ^0.14.0
   shared_preferences: ^2.0.6
+  fluttertoast: ^8.2.2
+  syncfusion_flutter_charts: ^21.2.9
+
 
 dev_dependencies:
   flutter_test:

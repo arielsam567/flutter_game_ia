@@ -1,12 +1,14 @@
 import 'dart:math';
 
 import 'package:flame/components.dart';
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 double radians(double degrees) {
   return degrees * pi / 180;
 }
 
-double lerp(a, b, t) {
+double lerp(double a, double b, double t) {
   return a + (b - a) * t;
 }
 
@@ -46,4 +48,18 @@ Map polysIntersect(List<Vector2> poly1, List<Vector2> poly2) {
     }
   }
   return {};
+}
+
+void showMessage(String message, {String color = '#000000'}) {
+  Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.CENTER,
+      timeInSecForIosWeb: 3,
+      backgroundColor: Colors.red,
+      webPosition: 'center',
+      webBgColor: color,
+      webShowClose: true,
+      textColor: Colors.white,
+      fontSize: 16.0);
 }

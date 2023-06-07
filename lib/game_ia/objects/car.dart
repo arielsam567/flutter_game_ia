@@ -4,19 +4,21 @@ import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_game_ia/IA/IA.dart';
+import 'package:flutter_game_ia/IA/neural_network.dart';
+import 'package:flutter_game_ia/game_ia/game_m1.dart';
 import 'package:flutter_game_ia/game_ia/objects/sensor.dart';
 import 'package:flutter_game_ia/game_medium/game_m1/control.dart';
 import 'package:flutter_game_ia/utils/utils.dart';
 
 class Car extends BodyComponent {
+  final double carOpacity = 0.1;
   final Vector2 worldSize;
   final double maxSpeed;
   final double friction = 0.2;
   final List<Sensor> sensors;
   final bool isTraffic;
   final Vector2? initialPosition;
-  NeuralNetwork brain = NeuralNetwork([10, 12, 4]);
+  NeuralNetwork brain = NeuralNetwork([sensorNumber, sensorNumber + 1, 4]);
   final Controls controls = Controls();
 
   double speed = 0;
@@ -25,8 +27,9 @@ class Car extends BodyComponent {
   double carSize = 1.6;
   double xSize = 0.25;
   double ySize = 0.5;
-  double angleIncrement = 0.02;
+  double angleIncrement = 0.04;
   double angleSpread = 2;
+  double lastPosition = 0;
 
   Car(
     this.worldSize, {
@@ -40,33 +43,47 @@ class Car extends BodyComponent {
   Future<void> onLoad() async {
     super.onLoad();
 
-    final sprite = Sprite(gameRef.images.fromCache(isTraffic ? 'car_red.png' : 'car.png'));
-    add(
-      SpriteComponent(
-        sprite: sprite,
-        size: Vector2(.6 * carSize, 1 * carSize),
-        anchor: Anchor.center,
-      ),
-    );
+    if (isTraffic) {
+      final sprite = Sprite(gameRef.images.fromCache('car_red.png'));
+      add(
+        SpriteComponent(
+          sprite: sprite,
+          size: Vector2(.6 * carSize, 1 * carSize),
+          anchor: Anchor.center,
+        ),
+      );
+    }
+
+    // final sprite = Sprite(gameRef.images.fromCache(isTraffic ? 'car_red.png' : 'car.png'));
+    // add(
+    //   SpriteComponent(
+    //     sprite: sprite,
+    //     size: Vector2(.6 * carSize, 1 * carSize),
+    //     anchor: Anchor.center,
+    //   ),
+    // );
   }
 
   @override
   Body createBody() {
     final bodyDef = BodyDef(
       position: initialPosition ?? Vector2(worldSize.x / 2, 3),
-      //position: initialPosition,
       type: BodyType.dynamic,
     );
 
     final shape = PolygonShape()..setAsBoxXY(xSize * carSize, ySize * carSize);
     final fixtureDef = FixtureDef(shape, isSensor: !isTraffic);
-    //add(sensor);
+    paint.color = Colors.green.withOpacity(carOpacity);
     return world.createBody(bodyDef)..createFixture(fixtureDef);
   }
 
   @override
   void update(double dt) {
     super.update(dt);
+    if (controls.isDead) {
+      body.linearVelocity = Vector2.zero();
+      return;
+    }
     move();
     setSpeed2D();
   }
@@ -146,20 +163,19 @@ class Car extends BodyComponent {
     updateSensorPosition(carPosition, rad);
     for (int i = 0; i < sensors.length; i++) {
       final List<Vector2> sensorVector = getSensorsVector(rad, sensors[i], i);
-      checkSensorCollisionWithParedes(sensorVector, sensors[i], paredesVector);
-      checkSensorCollisionWithTraffic(sensorVector, sensors[i], traffic);
+      checkSensorCollisionWithTraffic(sensorVector, sensors[i], traffic, paredesVector);
     }
 
     if (!isTraffic) {
-      List<double> offsets = sensors.map((s) => 1 - s.reading).toList();
-      //print('offsets: $offsets');
-      //var offsets = this.sensor.readings.map((s) => s == null ? 0 : 1 - s.offset);
+      final List<double> offsets = sensors.map((s) => s.reading).toList();
       final outputs = NeuralNetwork.feedForward(offsets, brain);
 
-      // controls.forward = outputs[0] > 0;
-      // controls.left = outputs[1] > 0;
-      // controls.right = outputs[2] > 0;
-      // controls.backward = outputs[3] > 0;
+      if (!controls.isDead) {
+        controls.forward = outputs[0] > 0;
+        controls.left = outputs[1] > 0;
+        controls.right = outputs[2] > 0;
+        controls.backward = outputs[3] > 0;
+      }
     }
 
     //CAR AND PAREDES
@@ -203,32 +219,51 @@ class Car extends BodyComponent {
     ];
   }
 
-  void checkSensorCollisionWithParedes(
-    List<Vector2> sensorVector,
-    Sensor sensor,
-    List<List<Vector2>> paredesVector,
-  ) {
-    Map map = polysIntersect(sensorVector, paredesVector[0]);
-    if (map.isEmpty) {
-      map = polysIntersect(sensorVector, paredesVector[1]);
-    }
-    if (map.isNotEmpty) {
-      sensor.updateColor(map['offset']);
-    }
-  }
+  // void checkSensorCollisionWithParedes(
+  //   List<Vector2> sensorVector,
+  //   Sensor sensor,
+  //   List<List<Vector2>> paredesVector,
+  // ) {
+  //   Map map = polysIntersect(sensorVector, paredesVector[0]);
+  //   if (map.isEmpty) {
+  //     map = polysIntersect(sensorVector, paredesVector[1]);
+  //   }
+  //   if (map.isNotEmpty) {
+  //     sensor.updateColor(map['offset']);
+  //   }
+  // }
 
   void checkSensorCollisionWithTraffic(
     List<Vector2> sensorVector,
     Sensor sensor,
     List<Car> traffic,
+    List<List<Vector2>> paredesVector,
   ) {
+    final List<Map> touch = [];
     for (int i = 0; i < traffic.length; i++) {
-      final car = traffic[i];
-      final carVector = car.getCarVector(car.carAngle);
-      final map = polysIntersect(sensorVector, carVector);
+      final Car car = traffic[i];
+      final List<Vector2> carVector = car.getCarVector(car.carAngle);
+      final Map map = polysIntersect(sensorVector, carVector);
       if (map.isNotEmpty) {
-        sensor.updateColor(map['offset']);
+        touch.add(map);
       }
+    }
+
+    for (int i = 0; i < paredesVector.length; i++) {
+      final List<Vector2> paredVector = paredesVector[i];
+      final Map map = polysIntersect(sensorVector, paredVector);
+      if (map.isNotEmpty) {
+        touch.add(map);
+      }
+    }
+
+    if (touch.isEmpty) {
+      sensor.updateColor(0);
+    } else {
+      final List<double> offsets = touch.map((e) => e['offset'] as double).toList();
+      final double min = offsets.reduce(math.min);
+      sensor.updateColor(min);
+      //return touches.find((e) => e.offset == minOffset);
     }
   }
 
@@ -291,5 +326,13 @@ class Car extends BodyComponent {
     for (final Sensor sensor in sensors) {
       sensor.deleteItem();
     }
+  }
+
+  bool isStopped() {
+    if (lastPosition == body.position.y) {
+      return true;
+    }
+    lastPosition = body.position.y;
+    return false;
   }
 }

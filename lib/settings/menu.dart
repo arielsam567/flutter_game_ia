@@ -50,7 +50,7 @@ class LessonMenu extends StatelessWidget {
                 route: Routes.lesson09,
               ),
               ButtonItem(
-                title: '9- Add sensor to body',
+                title: '10 - Car game - auto-driver - Neural Network',
                 route: Routes.lesson10,
               ),
             ],
@@ -64,10 +64,12 @@ class LessonMenu extends StatelessWidget {
 class ButtonItem extends StatelessWidget {
   final String title;
   final String route;
+  final Object? args;
 
   const ButtonItem({
     required this.title,
     required this.route,
+    this.args,
     super.key,
   });
 
@@ -82,7 +84,7 @@ class ButtonItem extends StatelessWidget {
             child: Text(title),
           ),
           onPressed: () {
-            Navigator.of(context).pushNamed(route);
+            Navigator.of(context).pushNamed(route, arguments: args);
           },
         ),
         const SizedBox(height: 8),

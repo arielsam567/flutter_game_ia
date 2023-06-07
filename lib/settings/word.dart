@@ -4,7 +4,6 @@ import 'package:flame/input.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_game_ia/main.dart';
 import 'package:flutter_game_ia/settings/routes.dart';
 import 'package:flutter_game_ia/utils/themes.dart';
 
@@ -23,8 +22,7 @@ class MyGame extends Forge2DGame with KeyboardEvents {
   Future<void> onLoad() async {
     camera.viewport = FixedResolutionViewport(screenSize);
 
-    // Adds a black background to the viewport
-    add(_Background(size: screenSize)..positionType = PositionType.viewport);
+    add(Background(size: screenSize)..positionType = PositionType.viewport);
 
     add(fps);
     add(totalBodies);
@@ -40,27 +38,20 @@ class MyGame extends Forge2DGame with KeyboardEvents {
   KeyEventResult onKeyEvent(RawKeyEvent event, Set keysPressed) {
     if (event is RawKeyDownEvent) {
       if (keysPressed.contains(LogicalKeyboardKey.escape)) {
-        navigatorKey.currentState?.pushNamedAndRemoveUntil(Routes.menu, (r) => false);
+        Routes.navigatorKey.currentState?.pushNamedAndRemoveUntil(Routes.menu, (r) => false);
         return KeyEventResult.handled;
       }
     }
     return KeyEventResult.ignored;
   }
-
-  @override
-  Color backgroundColor() {
-    // Paints the background red
-    return Colors.red;
-  }
 }
 
-// Helper component that paints a black background
-class _Background extends PositionComponent {
-  _Background({super.size});
+class Background extends PositionComponent {
+  Background({super.size});
 
   @override
   void render(Canvas canvas) {
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.x, size.y), blackPaint);
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.x, size.y), grayPaint);
   }
 }
 
@@ -78,7 +69,7 @@ class MyGameWidget extends StatelessWidget {
         shadowColor: Colors.transparent,
         leading: IconButton(
           onPressed: () {
-            navigatorKey.currentState?.pushNamedAndRemoveUntil(Routes.menu, (r) => false);
+            Routes.navigatorKey.currentState?.pushNamedAndRemoveUntil(Routes.menu, (r) => false);
           },
           icon: const Icon(Icons.arrow_back),
         ),

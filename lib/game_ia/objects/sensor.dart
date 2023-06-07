@@ -36,11 +36,16 @@ class Sensor extends BodyComponent with ContactCallbacks, Collision {
 
   void updateColor(double percent) {
     reading = percent;
-    final Color color = Color.lerp(
+    Color color = Color.lerp(
       Colors.green,
       Colors.red,
       percent,
     )!;
+
+    if (percent == 0) {
+      color = Colors.white;
+    }
+
     paint.color = color;
   }
 

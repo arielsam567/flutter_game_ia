@@ -1,4 +1,6 @@
-import 'package:flutter_game_ia/game_ia/objects/car.dart';
+import 'dart:convert';
+
+import 'package:flutter_game_ia/IA/neural_network.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Storage {
@@ -13,9 +15,32 @@ class Storage {
     _sharedPreferences ??= await SharedPreferences.getInstance();
   }
 
-  void saveBestCar(Car car) {
-    final String brain = car.brain.toString();
-    print('brain: $brain');
-    _sharedPreferences!.setString('bestCar', brain);
+  void saveBrain(NeuralNetwork neuralNetwork) {
+    final Map brain = neuralNetwork.toJson();
+    final String brainString = jsonEncode(brain);
+    _sharedPreferences!.setString('bestCar', brainString);
+  }
+
+  NeuralNetwork? getBrain() {
+    final String? brainString = _sharedPreferences!.getString('bestCar');
+    if (brainString == null) {
+      return null;
+    }
+
+    final Map<String, dynamic> brain = jsonDecode(brainString);
+    return NeuralNetwork.fromJson(brain);
+  }
+
+  void deleteBrain() {
+    _sharedPreferences!.remove('bestCar');
+    _sharedPreferences!.remove('bestPosition');
+  }
+
+  void saveBestPosition(double bestPosition) {
+    _sharedPreferences!.setDouble('bestPosition', bestPosition);
+  }
+
+  double getBestPosition() {
+    return _sharedPreferences!.getDouble('bestPosition') ?? 0;
   }
 }
