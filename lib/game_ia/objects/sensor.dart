@@ -8,6 +8,8 @@ class Sensor extends BodyComponent {
   Color sensorColor = Colors.white;
   Vector2 position = Vector2.zero();
   double angleSensor = 0;
+  static const Color safe = Colors.green;
+  static const Color danger = Colors.red;
 
   @override
   Body createBody() {
@@ -37,8 +39,8 @@ class Sensor extends BodyComponent {
   void updateColor(double percent) {
     reading = percent;
     Color newColor = Color.lerp(
-      Colors.green,
-      Colors.red,
+      safe,
+      danger,
       reading,
     )!;
 

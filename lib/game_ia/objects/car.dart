@@ -20,6 +20,8 @@ class Car extends BodyComponent {
   final Vector2? initialPosition;
   NeuralNetwork brain = NeuralNetwork([sensorNumber, sensorNumber + 3, 4]);
   final Controls controls = Controls();
+  static const Color deadColor = Colors.pink;
+  static const Color aliveColor = Colors.green;
 
   double speed = 0;
   double acceleration = 0.50;
@@ -73,7 +75,7 @@ class Car extends BodyComponent {
 
     final shape = PolygonShape()..setAsBoxXY(xSize * carSize, ySize * carSize);
     final fixtureDef = FixtureDef(shape, isSensor: !isTraffic);
-    paint.color = Colors.green.withOpacity(carOpacity);
+    paint.color = aliveColor.withOpacity(carOpacity);
     return world.createBody(bodyDef)..createFixture(fixtureDef);
   }
 
@@ -153,17 +155,17 @@ class Car extends BodyComponent {
   }
 
   void updateColor(bool isColliding) {
-    if (isColliding && Colors.red != paint.color) {
-      paint.color = Colors.red;
+    if (isColliding && deadColor != paint.color) {
+      paint.color = deadColor;
     }
   }
 
-  void checkCollisions(List<List<Vector2>> paredesVector, List<Car> traffic) {
+  void checkCollisions(List<List<Vector2>> wallsVector, List<Car> traffic) {
     final carPosition = body.position;
     final double rad = carAngle;
 
     //SENSOR
-    updateSensorPosition(carPosition, rad, traffic, paredesVector);
+    updateSensorPosition(carPosition, rad, traffic, wallsVector);
     final List<double> offsets = sensors.map((s) => s.reading).toList();
     final outputs = NeuralNetwork.feedForward(offsets, brain);
 
@@ -174,9 +176,9 @@ class Car extends BodyComponent {
       controls.backward = outputs[3] > 0;
     }
 
-    //CAR AND PAREDES
+    //CAR AND WALLS
     final List<Vector2> carVector = getCarVector(rad);
-    checkCarCollisionWithParedes(paredesVector, carVector);
+    checkCarCollisionWithParedes(wallsVector, carVector);
 
     //CAR AND TRAFFIC
     checkCarCollisionWithTraffic(carVector, traffic);
@@ -186,7 +188,7 @@ class Car extends BodyComponent {
     Vector2 carPosition,
     double carAngleRad,
     List<Car> traffic,
-    List<List<Vector2>> paredesVector,
+    List<List<Vector2>> wallsVector,
   ) {
     final double angleIncrement = angleSensor;
     for (int i = 0; i < sensors.length; i++) {
@@ -202,7 +204,7 @@ class Car extends BodyComponent {
       }
 
       final List<Vector2> sensorVector = getSensorsVector(carAngleRad, sensors[i], i);
-      checkSensorCollisionWithTraffic(sensorVector, sensors[i], traffic, paredesVector);
+      checkSensorCollisionWithTraffic(sensorVector, sensors[i], traffic, wallsVector);
     }
   }
 
@@ -231,7 +233,7 @@ class Car extends BodyComponent {
     List<Vector2> sensorVector,
     Sensor sensor,
     List<Car> traffic,
-    List<List<Vector2>> paredesVector,
+    List<List<Vector2>> wallsVector,
   ) {
     final List<Map> touch = [];
     for (int i = 0; i < traffic.length; i++) {
@@ -243,9 +245,9 @@ class Car extends BodyComponent {
       }
     }
 
-    for (int i = 0; i < paredesVector.length; i++) {
-      final List<Vector2> paredVector = paredesVector[i];
-      final Map map = polysIntersect(sensorVector, paredVector);
+    for (int i = 0; i < wallsVector.length; i++) {
+      final List<Vector2> wallVector = wallsVector[i];
+      final Map map = polysIntersect(sensorVector, wallVector);
       if (map.isNotEmpty) {
         touch.add(map);
       }
@@ -292,31 +294,30 @@ class Car extends BodyComponent {
     return list;
   }
 
-  void checkCarCollisionWithParedes(List<List<Vector2>> paredesVector, List<Vector2> carVector) {
-    Map map = polysIntersect(carVector, paredesVector[0]);
+  void checkCarCollisionWithParedes(List<List<Vector2>> wallsVector, List<Vector2> carVector) {
+    Map map = polysIntersect(carVector, wallsVector[0]);
     if (map.isEmpty) {
-      map = polysIntersect(carVector, paredesVector[1]);
+      map = polysIntersect(carVector, wallsVector[1]);
     }
-    if (map.isNotEmpty && paint.color != Colors.red) {
+    if (map.isNotEmpty && paint.color != deadColor) {
       updateColor(true);
-      controls.setBateu();
+      controls.setAsDead();
     }
   }
 
-  void checkCarCollisionWithTraffic(List<Vector2> carVector, List<Car> cars) {
+  void checkCarCollisionWithTraffic(List<Vector2> carsVector, List<Car> cars) {
     for (final Car element in cars) {
-      final List<Vector2> oneCarVector = element.getCarVector(element.carAngle);
-      final Map map = polysIntersect(carVector, oneCarVector);
+      final List<Vector2> carVector = element.getCarVector(element.carAngle);
+      final Map map = polysIntersect(carsVector, carVector);
       if (map.isNotEmpty && paint.color != Colors.red) {
-        controls.setBateu();
+        controls.setAsDead();
         updateColor(true);
       }
     }
   }
 
   double getLastPosition() {
-    final double lastPosition = body.position.y;
-    return lastPosition;
+    return body.position.y;
   }
 
   void deleteItem() {

@@ -36,7 +36,7 @@ class Controls {
     return !forward && !backward && !left && !right;
   }
 
-  void setBateu() {
+  void setAsDead() {
     isDead = true;
   }
 }
