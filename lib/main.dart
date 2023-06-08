@@ -4,8 +4,8 @@ import 'package:flutter_game_ia/settings/routes.dart';
 void main() {
   runApp(
     MaterialApp(
+      title: 'Flutter - Self-driving car',
       navigatorKey: Routes.navigatorKey,
-      debugShowCheckedModeBanner: false,
       onGenerateRoute: Routes.routes,
       initialRoute: Routes.menu,
     ),

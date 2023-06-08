@@ -1,7 +1,7 @@
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 
-class Sensor extends BodyComponent with ContactCallbacks, Collision {
+class Sensor extends BodyComponent {
   double xSize = 0.02;
   double ySize = 2;
   double reading = 0;
@@ -17,10 +17,6 @@ class Sensor extends BodyComponent with ContactCallbacks, Collision {
     final shape = PolygonShape()..setAsBoxXY(xSize, ySize);
     final fixtureDef = FixtureDef(shape, isSensor: true);
     return world.createBody(bodyDef)..createFixture(fixtureDef);
-  }
-
-  double sizeX() {
-    return xSize;
   }
 
   double sizeY() {

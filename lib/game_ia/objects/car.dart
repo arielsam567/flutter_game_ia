@@ -206,15 +206,17 @@ class Car extends BodyComponent {
     final sensorPosition = sensor.body.position;
 
     final double sensorAngleRad = carAngleRad - pi / (2 * angleSpread) + angleSensor * i;
-
+    final double sizeY = sensor.sizeY();
+    final aux = sizeY * sin(sensorAngleRad);
+    final aux2 = sizeY * cos(sensorAngleRad);
     return [
       Vector2(
-        sensorPosition.x + sensor.sizeY() * sin(sensorAngleRad),
-        sensorPosition.y - sensor.sizeY() * cos(sensorAngleRad),
+        sensorPosition.x + aux,
+        sensorPosition.y - aux2,
       ),
       Vector2(
-        sensorPosition.x - sensor.sizeY() * sin(sensorAngleRad),
-        sensorPosition.y + sensor.sizeY() * cos(sensorAngleRad),
+        sensorPosition.x - aux,
+        sensorPosition.y + aux2,
       ),
     ];
   }

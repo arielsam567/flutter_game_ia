@@ -1,19 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
 
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
@@ -29,7 +17,7 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>flutter_game_ia</title>
+  <title>Flutter - Self-driving car</title>
   <link rel="manifest" href="manifest.json">
 
   <script>
@@ -40,6 +28,25 @@
   <script src="flutter.js" defer></script>
 </head>
 <body>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+
+  <script>
+        var firebaseConfig = {
+           apiKey: "AIzaSyDqIJ_mnO2F5BDZaekShPCuiYrABJhzD5w",
+            authDomain: "agenda-903d4.firebaseapp.com",
+            projectId: "agenda-903d4",
+            storageBucket: "agenda-903d4.appspot.com",
+            messagingSenderId: "274495145784",
+            appId: "1:274495145784:web:07fd8e1d0e12f6d0fc23cd",
+            measurementId: "G-4B6X1TJHJQ"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+      </script>
+
+
+
   <script>
     window.addEventListener('load', function(ev) {
       // Download main.dart.js

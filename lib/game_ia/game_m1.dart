@@ -24,7 +24,7 @@ class GameComIA extends MyGameIa {
   final Storage storage = Storage();
   late Car bestCar;
   List<Sensor> carSensor = [];
-  final int N = 5;
+  final int N = 20;
   List<Car> cars = [];
   List<Car> traffic = [];
   final worldBounds = Rect.fromLTRB(0, -double.infinity, worldSize.x, worldSize.y);
@@ -157,6 +157,10 @@ class GameComIA extends MyGameIa {
   @override
   void update(double dt) {
     super.update(dt);
+    updateCars();
+  }
+
+  void updateCars() {
     for (final Car element in cars) {
       element.checkCollisions(paredesVector, traffic);
     }
