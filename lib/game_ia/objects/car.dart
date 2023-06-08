@@ -163,11 +163,7 @@ class Car extends BodyComponent {
     final double rad = carAngle;
 
     //SENSOR
-    updateSensorPosition(carPosition, rad);
-    for (int i = 0; i < sensors.length; i++) {
-      final List<Vector2> sensorVector = getSensorsVector(rad, sensors[i], i);
-      checkSensorCollisionWithTraffic(sensorVector, sensors[i], traffic, paredesVector);
-    }
+    updateSensorPosition(carPosition, rad, traffic, paredesVector);
     final List<double> offsets = sensors.map((s) => s.reading).toList();
     final outputs = NeuralNetwork.feedForward(offsets, brain);
 
@@ -186,7 +182,12 @@ class Car extends BodyComponent {
     checkCarCollisionWithTraffic(carVector, traffic);
   }
 
-  void updateSensorPosition(Vector2 carPosition, double carAngleRad) {
+  void updateSensorPosition(
+    Vector2 carPosition,
+    double carAngleRad,
+    List<Car> traffic,
+    List<List<Vector2>> paredesVector,
+  ) {
     final double angleIncrement = angleSensor;
     for (int i = 0; i < sensors.length; i++) {
       final double sensorAngleRad = carAngleRad - pi / (2 * angleSpread) + angleIncrement * i;
@@ -194,16 +195,21 @@ class Car extends BodyComponent {
         carPosition.x + 2.8 * sin(sensorAngleRad),
         carPosition.y - 2.8 * cos(sensorAngleRad),
       );
-      if (newPosition != (sensors[i].body.position)) {
-        sensors[i].body.setTransform(newPosition, sensorAngleRad);
+      if (newPosition != (sensors[i].position)) {
+        // sensors[i].body.setTransform(newPosition, sensorAngleRad);
+        sensors[i].position = newPosition;
+        sensors[i].angleSensor = sensorAngleRad;
       }
+
+      final List<Vector2> sensorVector = getSensorsVector(carAngleRad, sensors[i], i);
+      checkSensorCollisionWithTraffic(sensorVector, sensors[i], traffic, paredesVector);
     }
   }
 
   double get angleSensor => (pi / angleSpread) / (sensors.length - 1);
 
   List<Vector2> getSensorsVector(double carAngleRad, Sensor sensor, int i) {
-    final sensorPosition = sensor.body.position;
+    final sensorPosition = sensor.position;
 
     final double sensorAngleRad = carAngleRad - pi / (2 * angleSpread) + angleSensor * i;
     final double sizeY = sensor.sizeY();
@@ -246,11 +252,11 @@ class Car extends BodyComponent {
     }
 
     if (touch.isEmpty) {
-      sensor.updateColor(0);
+      sensor.setReading(0);
     } else {
       final List<double> offsets = touch.map((e) => e['offset'] as double).toList();
       final double min = offsets.reduce(math.min);
-      sensor.updateColor(min);
+      sensor.setReading(min);
     }
   }
 
@@ -316,9 +322,6 @@ class Car extends BodyComponent {
   void deleteItem() {
     world.destroyBody(body);
     gameRef.remove(this);
-    for (final Sensor sensor in sensors) {
-      sensor.deleteItem();
-    }
   }
 
   bool isStopped() {

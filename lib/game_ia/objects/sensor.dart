@@ -6,6 +6,8 @@ class Sensor extends BodyComponent {
   double ySize = 2;
   double reading = 0;
   Color sensorColor = Colors.white;
+  Vector2 position = Vector2.zero();
+  double angleSensor = 0;
 
   @override
   Body createBody() {
@@ -23,15 +25,24 @@ class Sensor extends BodyComponent {
     return ySize;
   }
 
+  void setReading(double percent) {
+    reading = percent;
+  }
+
+  void deleteItem() {
+    world.destroyBody(body);
+    gameRef.remove(this);
+  }
+
   void updateColor(double percent) {
     reading = percent;
     Color newColor = Color.lerp(
       Colors.green,
       Colors.red,
-      percent,
+      reading,
     )!;
 
-    if (percent == 0) {
+    if (reading == 0) {
       newColor = Colors.white;
     }
 
@@ -39,10 +50,5 @@ class Sensor extends BodyComponent {
       paint.color = newColor;
       sensorColor = newColor;
     }
-  }
-
-  void deleteItem() {
-    world.destroyBody(body);
-    gameRef.remove(this);
   }
 }

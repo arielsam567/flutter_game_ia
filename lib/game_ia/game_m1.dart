@@ -17,14 +17,14 @@ import 'package:flutter_game_ia/utils/utils.dart';
 
 int sensorNumber = 10;
 int durationToNewGeneration = 15;
-double mutateRate = 0.1;
+double mutateRate = 0.25;
 
 class GameComIA extends MyGameIa {
   final List<GenerationInfo> generation;
   final Storage storage = Storage();
   late Car bestCar;
   List<Sensor> carSensor = [];
-  final int N = 20;
+  final int N = 40;
   List<Car> cars = [];
   List<Car> traffic = [];
   final worldBounds = Rect.fromLTRB(0, -double.infinity, worldSize.x, worldSize.y);
@@ -49,9 +49,9 @@ class GameComIA extends MyGameIa {
 
       cars.add(carAux);
       await add(carAux);
-      for (int i = 0; i < sensorNumber; i++) {
-        await add(carSensor[i]);
-      }
+    }
+    for (int i = 0; i < sensorNumber; i++) {
+      add(carSensor[i]);
     }
 
     debugPrint('\nCars generated');
@@ -112,11 +112,11 @@ class GameComIA extends MyGameIa {
         showMessage('Best brain saved');
       }
 
-      if (event.logicalKey == LogicalKeyboardKey.keyR) {
+      if (keysPressed.contains(LogicalKeyboardKey.escape)) {
         closePage = true;
-
         storage.deleteBrain();
         showMessage('Best brain removed', color: '#B83131');
+        return KeyEventResult.handled;
       }
     }
 
@@ -236,22 +236,29 @@ class GameComIA extends MyGameIa {
         bestCar = cars[i];
       }
     }
+
     camera.followBodyComponent(
       bestCar,
       worldBounds: worldBounds,
       relativeOffset: const Anchor(0.5, 0.7),
     );
+    for (int t = 0; t < carSensor.length; t++) {
+      carSensor[t].body.setTransform(bestCar.sensors[t].position, bestCar.sensors[t].angleSensor);
+      carSensor[t].updateColor(bestCar.sensors[t].reading);
+    }
   }
 
   void setBestBrain() {
     bestBrain = storage.getBrain();
+
     if (bestBrain != null) {
       debugPrint('HAS BEST BRAIN');
+      final double mutationRate = getMutationRate();
 
       for (int i = 0; i < cars.length; i++) {
         cars[i].brain = bestBrain!.clone();
         if (i > 0) {
-          NeuralNetwork.mutate(cars[i].brain, mutateRate);
+          NeuralNetwork.mutate(cars[i].brain, mutationRate);
         }
       }
     } else {
@@ -304,5 +311,22 @@ class GameComIA extends MyGameIa {
     if (cars.isEmpty) {
       startNewGeneration(isRestart: true);
     }
+  }
+
+  double getMutationRate() {
+    final length = generation.length;
+    const int aux = 3;
+
+    if (length > aux) {
+      print('ENTROU');
+      final List<GenerationInfo> last3 = generation.sublist(length - aux, length);
+      final double media =
+          last3.map((e) => e.distance).reduce((value, element) => value + element) / aux;
+      if (media * 0.9 > last3.last.distance) {
+        print('ENTROU NO AUMENTO AUMENTO');
+        return mutateRate * 2;
+      }
+    }
+    return mutateRate;
   }
 }
