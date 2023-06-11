@@ -100,7 +100,7 @@ class DashedWall extends BodyComponent {
   //           ..style = PaintingStyle.stroke
 
   @override
-  void render(Canvas c) {
+  void render(Canvas canvas) {
     final double startOffset = _start.distanceTo(Vector2.zero());
     final double endOffset = _end.distanceTo(Vector2.zero());
     final double totalLength = endOffset - startOffset;
@@ -117,7 +117,7 @@ class DashedWall extends BodyComponent {
       final Vector2 startPoint = lerpVector2(_start, _end, startPercent);
       final Vector2 endPoint = lerpVector2(_start, _end, endPercent);
 
-      c.drawLine(
+      canvas.drawLine(
         Offset(startPoint.x, startPoint.y),
         Offset(endPoint.x, endPoint.y),
         _paint,

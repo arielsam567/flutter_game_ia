@@ -12,14 +12,14 @@ class Visualizer {
 
     final double levelHeight = height / network.levels.length;
 
-    Paint paint = Paint();
+    final Paint paint = Paint();
     for (int i = network.levels.length - 1; i >= 0; i--) {
       final double levelTop = top +
           lerp(
             height - levelHeight,
             0,
             network.levels.length == 1 ? 0.5 : i / (network.levels.length - 1),
-          )!;
+          );
       paint.style = PaintingStyle.stroke;
       paint.strokeWidth = 1.0;
       paint.color = Colors.black;
@@ -66,17 +66,15 @@ class Visualizer {
 
       ctx.drawCircle(Offset(x, top), nodeRadius * 0.8, paint);
 
-      if (outputLabels[i] != null) {
-        TextPainter textPainter = TextPainter(
-          text: TextSpan(
-              text: outputLabels[i],
-              style: TextStyle(color: Colors.black, fontSize: nodeRadius * 1.5)),
-          textDirection: TextDirection.ltr,
-        );
+      final TextPainter textPainter = TextPainter(
+        text: TextSpan(
+            text: outputLabels[i],
+            style: const TextStyle(color: Colors.black, fontSize: nodeRadius * 1.5)),
+        textDirection: TextDirection.ltr,
+      );
 
-        textPainter.layout();
-        textPainter.paint(ctx, Offset(x, top + nodeRadius * 0.1));
-      }
+      textPainter.layout();
+      textPainter.paint(ctx, Offset(x, top + nodeRadius * 0.1));
     }
   }
 
@@ -85,7 +83,7 @@ class Visualizer {
       left,
       right,
       nodes.length == 1 ? 0.5 : index / (nodes.length - 1),
-    )!;
+    );
   }
 }
 

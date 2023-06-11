@@ -3,10 +3,15 @@ import 'dart:html' as html;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_game_ia/settings/routes.dart';
+import 'package:flutter_game_ia/settings/storage.dart';
+import 'package:flutter_game_ia/utils/utils.dart';
 
 class LessonMenu extends StatelessWidget {
-  const LessonMenu({super.key});
+  final Storage storage = Storage();
+
+  LessonMenu({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +58,7 @@ class LessonMenu extends StatelessWidget {
             route: Routes.lesson09,
           ),
           const ButtonItem(
-            title: '10 - Car game - auto-driver - Neural Network',
+            title: '10 - Car - Self-driving - Neural Network',
             route: Routes.lesson10,
           ),
 
@@ -150,12 +155,106 @@ class ButtonItem extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: Text(title),
           ),
-          onPressed: () {
+          onPressed: () async {
+            if (route == Routes.lesson10) {
+              await showAlertDialog(context);
+            }
             Navigator.of(context).pushNamed(route, arguments: args);
           },
         ),
         const SizedBox(height: 8),
       ],
     );
+  }
+
+  Future<void> showAlertDialog(context) async {
+    final formKey = GlobalKey<FormState>();
+    final storage = Storage();
+    final sensorsController = TextEditingController(text: '${storage.getSensorsNumber()}');
+    final carsController = TextEditingController(text: '${storage.getCarsNumber()}');
+    return showDialog<void>(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: SingleChildScrollView(
+              child: Form(
+                key: formKey,
+                child: ListBody(
+                  children: <Widget>[
+                    const Text('Informe quantos sensores o carro deve ter'),
+                    Container(
+                      width: 50,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: TextFormField(
+                        controller: sensorsController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: const InputDecoration(
+                          labelText: 'Quantidade de sensores',
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Informe um valor';
+                          }
+                          if (int.parse(value) < 1) {
+                            return 'Informe um valor maior que 0';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const Text('Informe quantos carros devem ser gerados'),
+                    Container(
+                      width: 50,
+                      padding: const EdgeInsets.only(top: 12),
+                      child: TextFormField(
+                        controller: carsController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: const InputDecoration(
+                          labelText: 'Quantidade de carros',
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Informe um valor';
+                          }
+                          if (int.parse(value) < 1) {
+                            return 'Informe um valor maior que 0';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Continuar'),
+                onPressed: () {
+                  if (formKey.currentState!.validate()) {
+                    final sensorNumber = int.parse(sensorsController.text);
+                    final int carNumber = int.parse(carsController.text);
+                    storage.deleteBrain();
+                    storage.carsNumber(carNumber);
+                    storage.sensorsNumber(sensorNumber);
+                    Navigator.of(context).pop();
+                  } else {
+                    showMessage('Informe um valor válido');
+                  }
+                },
+              ),
+            ],
+          );
+        });
   }
 }

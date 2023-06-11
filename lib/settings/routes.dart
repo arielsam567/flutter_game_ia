@@ -39,7 +39,7 @@ class Routes {
 
     switch (settings.name) {
       case menu:
-        return buildRoute(const LessonMenu());
+        return buildRoute(LessonMenu());
       case lesson01:
         return buildRoute(MyGameWidget(game: GameLesson01()));
       case lesson02:

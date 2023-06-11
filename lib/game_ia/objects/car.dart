@@ -5,7 +5,6 @@ import 'package:flame/components.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_game_ia/IA/neural_network.dart';
-import 'package:flutter_game_ia/game_ia/game_m1.dart';
 import 'package:flutter_game_ia/game_ia/objects/sensor.dart';
 import 'package:flutter_game_ia/game_medium/game_m1/control.dart';
 import 'package:flutter_game_ia/utils/utils.dart';
@@ -18,7 +17,8 @@ class Car extends BodyComponent {
   final List<Sensor> sensors;
   final bool isTraffic;
   final Vector2? initialPosition;
-  NeuralNetwork brain = NeuralNetwork([sensorNumber, sensorNumber + 3, 4]);
+
+  late NeuralNetwork brain;
   final Controls controls = Controls();
   static const Color deadColor = Colors.pink;
   static const Color aliveColor = Colors.green;
@@ -39,7 +39,9 @@ class Car extends BodyComponent {
     this.isTraffic = false,
     this.initialPosition,
     this.maxSpeed = 6,
-  });
+  }) {
+    brain = NeuralNetwork([sensors.length, sensors.length + 3, 4]);
+  }
 
   @override
   Future<void> onLoad() async {

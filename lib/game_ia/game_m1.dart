@@ -15,7 +15,6 @@ import 'package:flutter_game_ia/settings/routes.dart';
 import 'package:flutter_game_ia/settings/storage.dart';
 import 'package:flutter_game_ia/utils/utils.dart';
 
-int sensorNumber = 10;
 int durationToNewGeneration = 15;
 double mutateRate = 0.25;
 
@@ -24,7 +23,6 @@ class GameComIA extends MyGameIa {
   final Storage storage = Storage();
   late Car bestCar;
   List<Sensor> carSensor = [];
-  final int N = 70;
   List<Car> cars = [];
   List<Car> traffic = [];
   final worldBounds = Rect.fromLTRB(0, -double.infinity, worldSize.x, worldSize.y);
@@ -41,6 +39,9 @@ class GameComIA extends MyGameIa {
   GameComIA(this.generation);
 
   timer.Future<void> generateCars() async {
+    final int N = storage.getCarsNumber();
+    final int sensorNumber = storage.getSensorsNumber();
+    print('sensorNumber $sensorNumber');
     for (int i = 0; i < N; i++) {
       carSensor = [];
       for (int i = 0; i < sensorNumber; i++) {
@@ -197,15 +198,16 @@ class GameComIA extends MyGameIa {
     await Future.wait([
       createOneCarToTraffic([2], -2),
       createOneCarToTraffic([1, 3], -6),
-      createOneCarToTraffic([0.5, 2, 4], -10),
-      createOneCarToTraffic([0, 1, 2, 4], -14),
-      createOneCarToTraffic([0, 1.1, 3.5, 4.3], -18),
+      createOneCarToTraffic([0, 2, 4], -10),
+      createOneCarToTraffic([1, 3], -14),
+      createOneCarToTraffic([0, 1, 2, 4], -18),
+      createOneCarToTraffic([-0.3, 0.5, 3.5, 4.3], -22),
     ]);
 
     _timer = timer.Timer.periodic(const Duration(seconds: 2), (timer) {
       checkStoppedCars();
       double position = bestCar.body.position.y;
-      if (position < -15) {
+      if (position < -19) {
         position += -6;
 
         createOneCarToTraffic([
@@ -288,7 +290,7 @@ class GameComIA extends MyGameIa {
       storage.saveBestPosition(currentScore);
       showMessage('Best brain saved');
     }
-    print('currentScore $currentScore | bestScore $bestScore');
+    debugPrint('currentScore $currentScore | bestScore $bestScore');
   }
 
   int getNewGeneration() {
@@ -318,7 +320,7 @@ class GameComIA extends MyGameIa {
       final double media =
           last3.map((e) => e.distance).reduce((value, element) => value + element) / aux;
       if (media * 0.9 > last3.last.distance) {
-        print('AUMENTOU  mutateRate');
+        debugPrint('AUMENTOU  mutateRate');
         return mutateRate * 2;
       }
     }
