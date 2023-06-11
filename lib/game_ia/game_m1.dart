@@ -16,7 +16,7 @@ import 'package:flutter_game_ia/settings/storage.dart';
 import 'package:flutter_game_ia/utils/utils.dart';
 
 int durationToNewGeneration = 15;
-double mutateRate = 0.25;
+double mutateRate = 0.2;
 
 class GameComIA extends MyGameIa {
   late List<GenerationInfo> generation;
@@ -29,6 +29,7 @@ class GameComIA extends MyGameIa {
   NeuralNetwork? bestBrain;
   bool closePage = false;
   late timer.Timer _timer;
+  final bool selfDrive;
 
   final List<Wall> walls = [];
   List<List<Vector2>> wallsVector = [];
@@ -36,17 +37,24 @@ class GameComIA extends MyGameIa {
 
   final int roads = 5;
 
+  GameComIA({this.selfDrive = false});
+
   timer.Future<void> generateCars() async {
     generation = storage.getGenerationInfo();
+    final int N = selfDrive ? 1 : storage.getCarsNumber();
 
-    final int N = storage.getCarsNumber();
     final int sensorNumber = storage.getSensorsNumber();
     for (int i = 0; i < N; i++) {
       carSensor = [];
       for (int i = 0; i < sensorNumber; i++) {
         carSensor.add(Sensor());
       }
-      final carAux = Car(worldSize, sensors: carSensor);
+      final carAux = Car(
+        worldSize,
+        sensors: carSensor,
+        maxSpeed: 3.4,
+        selfDrive: selfDrive,
+      );
 
       cars.add(carAux);
       await add(carAux);
@@ -174,7 +182,7 @@ class GameComIA extends MyGameIa {
   }
 
   timer.Future<void> createOneCarToTraffic(List<double> roads, double yPosition,
-      [double maxSpeed = 2]) async {
+      [double maxSpeed = 0.75]) async {
     for (final double element in roads) {
       final c1 = Car(
         worldSize,
@@ -186,7 +194,7 @@ class GameComIA extends MyGameIa {
           yPosition,
         ),
       );
-
+      c1.controls.forward = true;
       traffic.add(c1);
 
       await add(c1);
@@ -203,18 +211,17 @@ class GameComIA extends MyGameIa {
       createOneCarToTraffic([-0.3, 0.5, 3.5, 4.3], -22),
     ]);
 
-    _timer = timer.Timer.periodic(const Duration(seconds: 2), (timer) {
+    _timer = timer.Timer.periodic(const Duration(seconds: 4), (timer) {
       checkStoppedCars();
-      double position = bestCar.body.position.y;
-      if (position < -19) {
-        position += -6;
+      double position = traffic.last.body.position.y;
 
-        createOneCarToTraffic([
-          Random().nextDouble() * 4,
-          Random().nextDouble() * 4,
-          Random().nextDouble() * 4,
-        ], position);
-      }
+      position += -5;
+
+      createOneCarToTraffic([
+        Random().nextDouble() * 4,
+        Random().nextDouble() * 4,
+        Random().nextDouble() * 4,
+      ], position);
     });
   }
 
@@ -227,9 +234,10 @@ class GameComIA extends MyGameIa {
 
   void checkBestCar() {
     cars.removeWhere((element) => element.controls.isDead);
-
     for (int i = 0; i < cars.length; i++) {
-      if (cars[i].body.position.y < bestCar.body.position.y) {
+      if (cars[i].body.position.y < bestCar.body.position.y &&
+          // cars[i].body.position.y < traffic.first.body.position.y &&
+          cars[i].body.position.y < 0) {
         bestCar = cars[i];
       }
     }
@@ -268,7 +276,7 @@ class GameComIA extends MyGameIa {
     Future.delayed(
       Duration(seconds: isRestart ? 0 : durationToNewGeneration),
       () async {
-        if (!closePage) {
+        if (!closePage && !selfDrive) {
           closePage = true;
           pauseEngine();
           await Future.delayed(const Duration(seconds: 1), () {});
@@ -298,7 +306,9 @@ class GameComIA extends MyGameIa {
 
   void checkStoppedCars() {
     cars.removeWhere((element) {
-      final bool delete = element.isStopped() || element.getLastPosition() > 3;
+      final bool delete = element.isStopped() ||
+          element.getLastPosition() > 3 ||
+          element.body.position.y > traffic.first.body.position.y;
       if (delete) {
         element.deleteItem();
         return true;

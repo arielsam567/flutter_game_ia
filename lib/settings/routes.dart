@@ -30,6 +30,7 @@ class Routes {
   static const lesson08 = '/lesson08';
   static const lesson09 = '/lesson09';
   static const lesson10 = '/lesson10';
+  static const lesson11 = '/lesson11';
 
   static Route routes(RouteSettings settings) {
     MaterialPageRoute buildRoute(Widget widget) {
@@ -63,6 +64,12 @@ class Routes {
         return buildRoute(MyGameWidgetIa(
           game: GameComIA(),
           generation: getGenerationInfo(),
+        ));
+      case lesson11:
+        return buildRoute(MyGameWidgetIa(
+          game: GameComIA(selfDrive: true),
+          generation: const [],
+          selfDrive: true,
         ));
       default:
         throw Exception('Route does not exists');

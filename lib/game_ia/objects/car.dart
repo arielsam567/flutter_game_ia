@@ -17,6 +17,7 @@ class Car extends BodyComponent {
   final List<Sensor> sensors;
   final bool isTraffic;
   final Vector2? initialPosition;
+  final bool selfDrive;
 
   late NeuralNetwork brain;
   final Controls controls = Controls();
@@ -38,9 +39,10 @@ class Car extends BodyComponent {
     required this.sensors,
     this.isTraffic = false,
     this.initialPosition,
-    this.maxSpeed = 6,
+    this.selfDrive = false,
+    this.maxSpeed = 4,
   }) {
-    brain = NeuralNetwork([sensors.length, sensors.length + 3, 4]);
+    brain = NeuralNetwork([sensors.length, sensors.length + 1, 4]);
   }
 
   @override
@@ -171,7 +173,7 @@ class Car extends BodyComponent {
     final List<double> offsets = sensors.map((s) => s.reading).toList();
     final outputs = NeuralNetwork.feedForward(offsets, brain);
 
-    if (!controls.isDead) {
+    if (!controls.isDead && !selfDrive) {
       controls.forward = outputs[0] > 0;
       controls.left = outputs[1] > 0;
       controls.right = outputs[2] > 0;

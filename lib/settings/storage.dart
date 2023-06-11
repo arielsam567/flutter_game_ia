@@ -46,11 +46,11 @@ class Storage {
     return _sharedPreferences!.getDouble('bestPosition') ?? 0;
   }
 
-  void carsNumber(int parse) {
+  void saveNumberOfCars(int parse) {
     _sharedPreferences!.setInt('carsNumber', parse);
   }
 
-  void sensorsNumber(int parse) {
+  void saveNumberOfSensors(int parse) {
     _sharedPreferences!.setInt('sensorsNumber', parse);
   }
 

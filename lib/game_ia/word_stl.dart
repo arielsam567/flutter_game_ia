@@ -7,10 +7,12 @@ import 'package:flutter_game_ia/settings/routes.dart';
 class MyGameWidgetIa extends StatelessWidget {
   final MyGameIa game;
   final List<GenerationInfo> generation;
+  final bool selfDrive;
 
   const MyGameWidgetIa({
     required this.game,
     required this.generation,
+    this.selfDrive = false,
     super.key,
   });
 
@@ -33,37 +35,39 @@ class MyGameWidgetIa extends StatelessWidget {
       ),
       body: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            height: 200,
-            width: MediaQuery.of(context).size.width,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.2,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Generation: ${getCurrentGeneration()}'),
-                      Text('Best location: ${getBestLocation()}'),
-                    ],
+          if (!selfDrive) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              height: 200,
+              width: MediaQuery.of(context).size.width,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.2,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Generation: ${getCurrentGeneration()}'),
+                        Text('Best location: ${getBestLocation()}'),
+                      ],
+                    ),
                   ),
-                ),
-                SizedBox(
-                  height: 200,
-                  width: MediaQuery.of(context).size.width * 0.7,
-                  child: LineChartPage(
-                    chartData: generation,
+                  SizedBox(
+                    height: 200,
+                    width: MediaQuery.of(context).size.width * 0.7,
+                    child: LineChartPage(
+                      chartData: generation,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+          ],
           SizedBox(
             width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height - 200,
+            height: MediaQuery.of(context).size.height - (selfDrive ? 0 : 200),
             child: GameWidget(
               game: game,
             ),
