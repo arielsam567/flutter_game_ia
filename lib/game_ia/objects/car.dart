@@ -30,7 +30,7 @@ class Car extends BodyComponent {
   double xSize = 0.25;
   double ySize = 0.5;
   double angleIncrement = 0.04;
-  double angleSpread = 2;
+  double angleSpread = 1.5;
   double lastPosition = 0;
 
   Car(
@@ -179,7 +179,7 @@ class Car extends BodyComponent {
     }
 
     //CAR AND WALLS
-    final List<Vector2> carVector = getCarVector(rad);
+    final List<Vector2> carVector = getCarVector();
     checkCarCollisionWithParedes(wallsVector, carVector);
 
     //CAR AND TRAFFIC
@@ -196,11 +196,10 @@ class Car extends BodyComponent {
     for (int i = 0; i < sensors.length; i++) {
       final double sensorAngleRad = carAngleRad - pi / (2 * angleSpread) + angleIncrement * i;
       final Vector2 newPosition = Vector2(
-        carPosition.x + 2.8 * sin(sensorAngleRad),
-        carPosition.y - 2.8 * cos(sensorAngleRad),
+        carPosition.x + 3 * sin(sensorAngleRad),
+        carPosition.y - 3 * cos(sensorAngleRad),
       );
       if (newPosition != (sensors[i].position)) {
-        // sensors[i].body.setTransform(newPosition, sensorAngleRad);
         sensors[i].position = newPosition;
         sensors[i].angleSensor = sensorAngleRad;
       }
@@ -240,7 +239,7 @@ class Car extends BodyComponent {
     final List<Map> touch = [];
     for (int i = 0; i < traffic.length; i++) {
       final Car car = traffic[i];
-      final List<Vector2> carVector = car.getCarVector(car.carAngle);
+      final List<Vector2> carVector = car.getCarVector();
       final Map map = polysIntersect(sensorVector, carVector);
       if (map.isNotEmpty) {
         touch.add(map);
@@ -264,36 +263,63 @@ class Car extends BodyComponent {
     }
   }
 
-  List<Vector2> getCarVector(double rad) {
-    final position = body.position;
-    final carSizeX = sizeX() / 2;
-    final carSizeY = sizeY();
-    final cosRad = cos(rad);
-    final sinRad = sin(rad);
-    final aux = carSizeX * cosRad;
-    final aux2 = carSizeX * sinRad;
-    final aux3 = carSizeY * cosRad;
-    final aux4 = carSizeY * sinRad;
+  List<Vector2> getCarVector() {
+    final List<Vector2> vertices = getRotatedBoxVertices();
 
-    final List<Vector2> list = [
-      Vector2(
-        position.x + aux + aux4,
-        position.y - aux3 - aux2,
-      ),
-      Vector2(
-        position.x - aux - aux4,
-        position.y - aux3 - aux2,
-      ),
-      Vector2(
-        position.x - aux - aux4,
-        position.y + aux3 + aux2,
-      ),
-      Vector2(
-        position.x + aux + aux4,
-        position.y + aux3 + aux2,
-      ),
+    // final position = body.position;
+    // final carSizeX = sizeX() / 2;
+    // final carSizeY = sizeY();
+    // final cosRad = cos(rad);
+    // final sinRad = sin(rad);
+    // final aux = carSizeX * cosRad;
+    // final aux2 = carSizeX * sinRad;
+    // final aux3 = carSizeY * cosRad;
+    // final aux4 = carSizeY * sinRad;
+    //
+    // final List<Vector2> list = [
+    //   Vector2(
+    //     position.x + aux + aux4,
+    //     position.y - aux3 - aux2,
+    //   ),
+    //   Vector2(
+    //     position.x - aux - aux4,
+    //     position.y - aux3 - aux2,
+    //   ),
+    //   Vector2(
+    //     position.x - aux - aux4,
+    //     position.y + aux3 + aux2,
+    //   ),
+    //   Vector2(
+    //     position.x + aux + aux4,
+    //     position.y + aux3 + aux2,
+    //   ),
+    // ];
+    //
+    // if (!isTraffic) {
+    //   //print('igual = ${list == vertices}');
+    //   print('\nb1:$vertices\nb2:$list');
+    // }
+    return vertices;
+  }
+
+  List<Vector2> getRotatedBoxVertices() {
+    final double theta = body.angle;
+    final xSize = sizeX();
+    final ySize = sizeY();
+
+    final List<Vector2> points = [
+      Vector2(-xSize, -ySize),
+      Vector2(xSize, -ySize),
+      Vector2(xSize, ySize),
+      Vector2(-xSize, ySize),
     ];
-    return list;
+
+    return points.map((point) {
+      final double newX = point.x * math.cos(theta) - point.y * math.sin(theta);
+      final double newY = point.x * math.sin(theta) + point.y * math.cos(theta);
+
+      return Vector2(newX, newY) + body.position;
+    }).toList();
   }
 
   void checkCarCollisionWithParedes(List<List<Vector2>> wallsVector, List<Vector2> carVector) {
@@ -309,7 +335,7 @@ class Car extends BodyComponent {
 
   void checkCarCollisionWithTraffic(List<Vector2> carsVector, List<Car> cars) {
     for (final Car element in cars) {
-      final List<Vector2> carVector = element.getCarVector(element.carAngle);
+      final List<Vector2> carVector = element.getCarVector();
       final Map map = polysIntersect(carsVector, carVector);
       if (map.isNotEmpty && paint.color != Colors.red) {
         controls.setAsDead();

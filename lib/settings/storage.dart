@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_game_ia/IA/neural_network.dart';
+import 'package:flutter_game_ia/game_ia/objects/charts_line.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Storage {
@@ -34,6 +35,7 @@ class Storage {
   void deleteBrain() {
     _sharedPreferences!.remove('bestCar');
     _sharedPreferences!.remove('bestPosition');
+    _sharedPreferences!.remove('generation');
   }
 
   void saveBestPosition(double bestPosition) {
@@ -58,5 +60,27 @@ class Storage {
 
   int getSensorsNumber() {
     return _sharedPreferences!.getInt('sensorsNumber') ?? 10;
+  }
+
+  List<GenerationInfo> getGenerationInfo() {
+    final String? generationString = _sharedPreferences!.getString('generation');
+    if (generationString == null) {
+      return [GenerationInfo(0, 0)];
+    }
+
+    final List<dynamic> generationJson = jsonDecode(generationString);
+    final List<GenerationInfo> generation = [];
+    for (final Map<String, dynamic> generationInfo in generationJson) {
+      generation.add(GenerationInfo.fromJson(generationInfo));
+    }
+    return generation;
+  }
+
+  void addGeneration(GenerationInfo generationInfo) {
+    final List<GenerationInfo> generation = getGenerationInfo();
+    generation.add(generationInfo);
+
+    final String generationString = jsonEncode(generation);
+    _sharedPreferences!.setString('generation', generationString);
   }
 }

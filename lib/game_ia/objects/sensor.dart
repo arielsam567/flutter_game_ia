@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 class Sensor extends BodyComponent {
   double xSize = 0.02;
-  double ySize = 2;
+  double ySize = 2.2;
   double reading = 0;
   Color sensorColor = Colors.white;
   Vector2 position = Vector2.zero();

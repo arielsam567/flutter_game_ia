@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_game_ia/settings/routes.dart';
+import 'package:flutter_game_ia/settings/storage.dart';
 
-void main() {
+Future<void> main() async {
+  await Storage.init();
   runApp(
     MaterialApp(
       title: 'Flutter - Self-driving car',

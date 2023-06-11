@@ -14,6 +14,7 @@ import 'package:flutter_game_ia/games_junior/game_5/game_5.dart';
 import 'package:flutter_game_ia/games_junior/game_6/game_6.dart';
 import 'package:flutter_game_ia/games_junior/game_7/game_7.dart';
 import 'package:flutter_game_ia/settings/menu.dart';
+import 'package:flutter_game_ia/settings/storage.dart';
 import 'package:flutter_game_ia/settings/word.dart';
 
 class Routes {
@@ -59,27 +60,23 @@ class Routes {
       case lesson09:
         return buildRoute(MyGameWidget(game: GameLesson09()));
       case lesson10:
-        final List<GenerationInfo> generation = getGenerationInfo(agrs);
-        return buildRoute(
-          MyGameWidgetIa(
-            game: GameComIA(generation),
-            generation: generation,
-          ),
-        );
+        return buildRoute(MyGameWidgetIa(
+          game: GameComIA(),
+          generation: getGenerationInfo(),
+        ));
       default:
         throw Exception('Route does not exists');
     }
   }
 
-  static List<GenerationInfo> getGenerationInfo(Object? agrs) {
-    return agrs == null ? <GenerationInfo>[GenerationInfo(0, 0)] : agrs as List<GenerationInfo>;
+  static List<GenerationInfo> getGenerationInfo() {
+    return Storage().getGenerationInfo();
   }
 
-  static void generateNewGeneration(List<GenerationInfo> generation) {
+  static void generateNewGeneration() {
     navigatorKey.currentState?.pushNamedAndRemoveUntil(
       Routes.lesson10,
       (r) => false,
-      arguments: generation,
     );
   }
 }

@@ -19,7 +19,7 @@ int durationToNewGeneration = 15;
 double mutateRate = 0.25;
 
 class GameComIA extends MyGameIa {
-  final List<GenerationInfo> generation;
+  late List<GenerationInfo> generation;
   final Storage storage = Storage();
   late Car bestCar;
   List<Sensor> carSensor = [];
@@ -36,12 +36,11 @@ class GameComIA extends MyGameIa {
 
   final int roads = 5;
 
-  GameComIA(this.generation);
-
   timer.Future<void> generateCars() async {
+    generation = storage.getGenerationInfo();
+
     final int N = storage.getCarsNumber();
     final int sensorNumber = storage.getSensorsNumber();
-    print('sensorNumber $sensorNumber');
     for (int i = 0; i < N; i++) {
       carSensor = [];
       for (int i = 0; i < sensorNumber; i++) {
@@ -251,7 +250,7 @@ class GameComIA extends MyGameIa {
 
     if (bestBrain != null) {
       debugPrint('HAS BEST BRAIN');
-      final double mutationRate = getMutationRate();
+      final double mutationRate = mutateRate;
 
       for (int i = 0; i < cars.length; i++) {
         cars[i].brain = bestBrain!.clone();
@@ -275,8 +274,8 @@ class GameComIA extends MyGameIa {
           await Future.delayed(const Duration(seconds: 1), () {});
           saveBestBrain();
           final distance = bestCar.getLastPosition().abs();
-          generation.add(GenerationInfo(getNewGeneration(), distance));
-          Routes.generateNewGeneration(generation);
+          storage.addGeneration(GenerationInfo(getNewGeneration(), distance));
+          Routes.generateNewGeneration();
         }
       },
     );
@@ -309,21 +308,5 @@ class GameComIA extends MyGameIa {
     if (cars.isEmpty) {
       startNewGeneration(isRestart: true);
     }
-  }
-
-  double getMutationRate() {
-    final length = generation.length;
-    const int aux = 3;
-
-    if (length > aux) {
-      final List<GenerationInfo> last3 = generation.sublist(length - aux, length);
-      final double media =
-          last3.map((e) => e.distance).reduce((value, element) => value + element) / aux;
-      if (media * 0.9 > last3.last.distance) {
-        debugPrint('AUMENTOU  mutateRate');
-        return mutateRate * 2;
-      }
-    }
-    return mutateRate;
   }
 }

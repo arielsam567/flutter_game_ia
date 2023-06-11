@@ -39,4 +39,13 @@ class GenerationInfo {
   final double distance;
 
   GenerationInfo(this.generation, this.distance);
+
+  GenerationInfo.fromJson(Map<String, dynamic> json)
+      : generation = json['generation'],
+        distance = json['distance'];
+
+  Map<String, dynamic> toJson() => {
+        'generation': generation,
+        'distance': distance,
+      };
 }
