@@ -24,7 +24,7 @@ class GameComIA extends MyGameIa {
   final Storage storage = Storage();
   late Car bestCar;
   List<Sensor> carSensor = [];
-  final int N = 40;
+  final int N = 70;
   List<Car> cars = [];
   List<Car> traffic = [];
   final worldBounds = Rect.fromLTRB(0, -double.infinity, worldSize.x, worldSize.y);
@@ -32,8 +32,9 @@ class GameComIA extends MyGameIa {
   bool closePage = false;
   late timer.Timer _timer;
 
-  final List<Wall> paredes = [];
-  List<List<Vector2>> paredesVector = [];
+  final List<Wall> walls = [];
+  List<List<Vector2>> wallsVector = [];
+  double lastPosition = 0;
 
   final int roads = 5;
 
@@ -57,10 +58,10 @@ class GameComIA extends MyGameIa {
     debugPrint('\nCars generated');
   }
 
-  void initParedeVector() {
-    for (final Wall element in paredes) {
+  void initWallsVector() {
+    for (final Wall element in walls) {
       final paredePosition = element.body.position;
-      paredesVector.add([
+      wallsVector.add([
         Vector2(paredePosition.x + element.sizeX(), paredePosition.y - element.sizeY()),
         Vector2(paredePosition.x - element.sizeX(), paredePosition.y + element.sizeY()),
       ]);
@@ -85,7 +86,7 @@ class GameComIA extends MyGameIa {
       worldBounds: worldBounds,
       relativeOffset: const Anchor(0.5, 0.7),
     );
-    initParedeVector();
+    initWallsVector();
     startNewGeneration();
   }
 
@@ -139,11 +140,11 @@ class GameComIA extends MyGameIa {
   }
 
   Future<void> addLinesRoad() async {
-    final paredeEsqueda = Wall(worldSize);
-    final paredeDireita = Wall(worldSize, isLeft: false);
-    paredes.addAll([paredeDireita, paredeEsqueda]);
-    await add(paredeEsqueda);
-    await add(paredeDireita);
+    final leftWall = Wall(worldSize);
+    final rightWall = Wall(worldSize, isLeft: false);
+    walls.addAll([rightWall, leftWall]);
+    await add(leftWall);
+    await add(rightWall);
     for (int i = 0; i < roads - 1; i++) {
       add(
         DashedWall(
@@ -162,7 +163,7 @@ class GameComIA extends MyGameIa {
 
   void updateCars() {
     for (final Car element in cars) {
-      element.checkCollisions(paredesVector, traffic);
+      element.checkCollisions(wallsVector, traffic);
     }
     checkBestCar();
   }
@@ -196,28 +197,23 @@ class GameComIA extends MyGameIa {
     await Future.wait([
       createOneCarToTraffic([2], -2),
       createOneCarToTraffic([1, 3], -6),
-      createOneCarToTraffic([0, 2, 4], -9),
-      createOneCarToTraffic([0, 1, 2, 4], -13),
-      createOneCarToTraffic([0, 1.1, 3, 4], -18),
+      createOneCarToTraffic([0.5, 2, 4], -10),
+      createOneCarToTraffic([0, 1, 2, 4], -14),
+      createOneCarToTraffic([0, 1.1, 3.5, 4.3], -18),
     ]);
 
-    _timer = timer.Timer.periodic(const Duration(seconds: 1), (timer) {
+    _timer = timer.Timer.periodic(const Duration(seconds: 2), (timer) {
       checkStoppedCars();
+      double position = bestCar.body.position.y;
+      if (position < -15) {
+        position += -6;
 
-      // final Car trafficCar = Car(
-      //   worldSize,
-      //   sensors: [],
-      //   maxSpeed: 2,
-      //   isTraffic: true,
-      //   initialPosition: Vector2(
-      //     Random().nextDouble() * worldSize.x * 0.8,
-      //     bestCar.getLastPosition() - 7,
-      //   ),
-      // );
-      // trafficCar.controls.forward = true;
-      // traffic.add(trafficCar);
-      //
-      // add(trafficCar);
+        createOneCarToTraffic([
+          Random().nextDouble() * 4,
+          Random().nextDouble() * 4,
+          Random().nextDouble() * 4,
+        ], position);
+      }
     });
   }
 
@@ -318,12 +314,11 @@ class GameComIA extends MyGameIa {
     const int aux = 3;
 
     if (length > aux) {
-      print('ENTROU');
       final List<GenerationInfo> last3 = generation.sublist(length - aux, length);
       final double media =
           last3.map((e) => e.distance).reduce((value, element) => value + element) / aux;
       if (media * 0.9 > last3.last.distance) {
-        print('ENTROU NO AUMENTO AUMENTO');
+        print('AUMENTOU  mutateRate');
         return mutateRate * 2;
       }
     }

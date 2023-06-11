@@ -36,21 +36,24 @@ class MyGameWidgetIa extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             height: 200,
-            width: MediaQuery.of(context).size.width - 32,
+            width: MediaQuery.of(context).size.width,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Generation: ${getCurrentGeneration()}'),
-                    Text('Best \nlocation: ${getBestLocation()}'),
-                  ],
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.2,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Generation: ${getCurrentGeneration()}'),
+                      Text('Best location: ${getBestLocation()}'),
+                    ],
+                  ),
                 ),
                 SizedBox(
                   height: 200,
-                  width: MediaQuery.of(context).size.width / 1.5,
+                  width: MediaQuery.of(context).size.width * 0.7,
                   child: LineChartPage(
                     chartData: generation,
                   ),
