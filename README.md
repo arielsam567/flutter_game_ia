@@ -1,16 +1,22 @@
-# flutter_game_ia
+# README.md
 
-A new Flutter project.
+## Descrição do Projeto
 
-## Getting Started
+Este é um projeto de implementação de uma rede neural para simular um carro autônomo usando Flutter Flame. O projeto foi inspirado por um curso de JavaScript que ensina a criar uma rede neural do zero e aplicá-la na simulação de um carro autônomo.
 
-This project is a starting point for a Flutter application.
+O curso em JavaScript aborda a mecânica de direção do carro, a definição do ambiente de simulação, a simulação de sensores, a detecção de colisões e a auto-condução do carro por meio de uma rede neural. Também são ensinadas a criação e a visualização de uma rede neural. O link do curso em JavaScript pode ser encontrado [aqui](https://www.youtube.com/watch?v=Rs_rAxEsAvI&t=4208s&ab_channel=freeCodeCamp.org).
 
-A few resources to get you started if this is your first Flutter project:
+A aplicação Flutter implementa as mesmas funções e dinâmicas, utilizando a biblioteca Flutter Flame. Contudo, vale ressaltar que a performance no Flutter é menor em comparação com JavaScript, com uma capacidade máxima de gerar 20 carros por geração.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Recursos
+
+- Redes neurais em Flutter
+- Simulação de carro autônomo
+- Detecção de colisões
+- Implementação de sensores
+
+
+
+
+![](assets/app.gif)
